@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TECHFIX - Dịch vụ sửa chữa toàn diện</title>
+    <link rel="stylesheet" href="/assets/css/home.css">
+
+
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="flex items-center">
+                <img src="/assets/image/hometech.jpg" alt="Logo" style="width:40px; height:40px; object-fit:contain; margin-right:8px;">
+                <h1 class="logo" style="margin:0; display:inline-block;">TECHFIX</h1>
+            </div>
+
+            <div class="nav-links">
+                <a href="#home">Trang Chủ</a>
+                <a href="#services">Dịch Vụ</a>
+                <a href="#about">Về Chúng Tôi</a>
+                <a href="#contact">Liên Hệ</a>
+                <a href="/home">Trang Quản Trị</a>
+                <!-- Nếu chưa đăng nhập -->
+                <a href="/register">Đăng Ký</a>
+                <a href="login.html">Đăng Nhập</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section id="home" class="hero">
+        <video autoplay muted loop playsinline class="hero-video">
+            <source src="/assets/image/home.mp4" type="video/mp4">
+        </video>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1>TECHFIX – Giải Pháp Sửa Chữa & Dịch Vụ Toàn Diện</h1>
+            <p>
+                Từ ngôi nhà đến văn phòng, từ điện, nước, điện lạnh đến vệ sinh –
+                TECHFIX mang đến dịch vụ nhanh chóng, uy tín và chuyên nghiệp cho mọi nhu cầu của bạn.
+            </p>
+            <div class="hero-actions">
+                <a href="/book" class="btn-primary">Đặt Ngay</a>
+                <a href="#about" class="btn-secondary">Tìm Hiểu Thêm</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services -->
+    <section id="services" class="section">
+        <h2 class="section-title">Các Dịch Vụ TECHFIX</h2>
+        <div class="slider-container">
+            <div class="slide-track" id="slideTrack">
+                <div class="slide">
+                    <img src="/assets/image/car.jpg" alt="car">
+                    <h3>Sửa Chữa & Bảo Trì Xe</h3>
+                    <p>Dịch vụ sửa chữa và bảo trì xe chuyên nghiệp...</p>
+                </div>
+                <div class="slide">
+                    <img src="/assets/image/pcc.jpg" alt="Sửa Chữa Máy Tính">
+                    <h3>Sửa Chữa Máy Tính</h3>
+                    <p>Sửa chữa máy tính từ phần cứng đến phần mềm...</p>
+                </div>
+                <div class="slide">
+                    <img src="/assets/image/elec.jpg" alt="Electrical">
+                    <h3>Sửa chữa & bảo trì hệ thống điện</h3>
+                    <p>Dịch vụ điện dân dụng và công nghiệp toàn diện...</p>
+                </div>
+                <div class="slide">
+                    <img src="/assets/image/air.jpg" alt="air-conditioned">
+                    <h3>Sửa Chữa & Vệ Sinh Điện Lạnh</h3>
+                    <p>Vệ sinh, sửa chữa và bảo trì hệ thống điện lạnh định kỳ...</p>
+                </div>
+            </div>
+            <button class="control-btn" id="prevBtn">❮</button>
+            <button class="control-btn" id="nextBtn">❯</button>
+            <div class="pagination" id="pagination"></div>
+        </div>
+        <div class="more-btn-container" style="text-align:center; margin-top:20px;">
+            <a href="/ServicesT" class="btn-primary">Tìm Hiểu Thêm</a>
+        </div>
+    </section>
+
+    <!-- About -->
+  <section id="about" class="section light">
+    <h2 class="section-title">Giới Thiệu TECHFIX</h2>
+    <div class="about-container">
+        <img src="/assets/image/hometech.jpg" alt="HomeTech logo" />
+        <div>
+            <p>
+                TECHFIX là nền tảng dịch vụ gia đình hiện đại, kết nối khách
+                hàng với đội ngũ kỹ thuật viên uy tín và chuyên nghiệp.
+            </p>
+            <p>
+                Chỉ với vài thao tác đơn giản, bạn có thể dễ dàng đặt lịch sửa
+                chữa, bảo trì hay vệ sinh nhà cửa ngay tại nhà.
+            </p>
+            <p>
+                Với TECHFIX, chúng tôi mang đến trải nghiệm nhanh chóng,
+                minh bạch và an toàn – giúp bạn tận hưởng không gian sống tiện
+                nghi hơn mỗi ngày.
+            </p>
+        </div>
+    </div>
+</section>
+
+    <!-- Contact -->
+    <section id="contact" class="section">
+        <h2 class="section-title">Liên Hệ</h2>
+        <form class="contact-form">
+            <input type="text" placeholder="Tên của bạn">
+            <input type="email" placeholder="Email của bạn">
+            <textarea rows="5" placeholder="Gửi về chúng tôi..."></textarea>
+            <button type="submit" class="btn-primary w-full">Gửi</button>
+        </form>
+
+        <div class="map-container">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!..." allowfullscreen loading="lazy"></iframe>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div>
+            <h3>TECHFIX</h3>
+            <p>ĐẶT NIỀM TIN - TRAO CHỮ TÍN</p>
+        </div>
+        <div>
+            <h3>Liên Kết Nhanh</h3>
+            <a href="#services">Dịch Vụ</a> |
+            <a href="#about">Về Chúng Tôi</a> |
+            <a href="#contact">Liên Hệ</a>
+        </div>
+        <div>
+            <h3>Thông Tin Liên Hệ</h3>
+            <p>Email: support@techfix.com</p>
+            <p>Điện thoại: +84 123 456 789</p>
+            <p>Địa chỉ: P4 Phạm Thái Bường</p>
+        </div>
+        <p class="copy">© 2025 TECHFIX. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Script slider cơ bản
+        const track = document.getElementById("slideTrack");
+        const slides = document.querySelectorAll(".slide");
+        let index = 0;
+
+        document.getElementById("nextBtn").addEventListener("click", () => {
+            index = (index + 1) % slides.length;
+            track.style.transform = `translateX(-${index * 100}%)`;
+        });
+
+        document.getElementById("prevBtn").addEventListener("click", () => {
+            index = (index - 1 + slides.length) % slides.length;
+            track.style.transform = `translateX(-${index * 100}%)`;
+        });
+    </script>
+    <script>
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("LandingPage JS loaded ✅");
+
+    const track = document.getElementById("slideTrack");
+    const slides = track ? track.children : [];
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const pagination = document.getElementById("pagination");
+    let index = 0;
+
+    // ===== SLIDER =====
+    if (pagination && slides.length > 0) {
+        pagination.innerHTML = "";
+        for (let i = 0; i < slides.length; i++) {
+            const dot = document.createElement("span");
+            dot.addEventListener("click", () => showSlide(i));
+            pagination.appendChild(dot);
+        }
+    }
+
+    function updatePagination() {
+        if (!pagination) return;
+        [...pagination.children].forEach((dot, i) => {
+            dot.classList.toggle("active", i === index);
+        });
+    }
+
+    function showSlide(i) {
+        if (!track || slides.length === 0) return;
+
+        if (i < 0) index = slides.length - 1;
+        else if (i >= slides.length) index = 0;
+        else index = i;
+
+        track.style.transform = `translateX(-${index * 100}%)`;
+        updatePagination();
+    }
+
+    if (prevBtn && nextBtn) {
+        prevBtn.addEventListener("click", () => showSlide(index - 1));
+        nextBtn.addEventListener("click", () => showSlide(index + 1));
+    }
+
+    if (slides.length > 0) {
+        setInterval(() => {
+            showSlide(index + 1);
+        }, 5000);
+    }
+
+    showSlide(0);
+
+    // ===== ABOUT SECTION ANIMATION =====
+    const aboutSection = document.querySelector(".about-container");
+
+    function checkScroll() {
+        if (!aboutSection) return;
+        const rect = aboutSection.getBoundingClientRect();
+        if (rect.top < window.innerHeight - 100) {
+            aboutSection.classList.add("show");
+            window.removeEventListener("scroll", checkScroll); // chỉ chạy 1 lần
+        }
+    }
+
+    window.addEventListener("scroll", checkScroll);
+    checkScroll();
+
+    console.log("LandingPage init finished 🚀");
+});
+</script>
+
+</body>
+</html>
