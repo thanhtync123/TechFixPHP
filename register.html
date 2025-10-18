@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Ký - TECHFIX</title>
+    
+    <link href="/assets/css/register.css" rel="stylesheet" />
+    
+</head>
+<body>
+
+    <div class="register-page">
+        <div class="particles">
+            <script>
+                const particlesContainer = document.querySelector('.particles');
+                for (let i = 0; i < 30; i++) {
+                    const p = document.createElement("div");
+                    p.className = "particle";
+                    
+                    const left = Math.floor(Math.random() * 100);
+                    const top = Math.floor(Math.random() * 100);
+                    const delay = (Math.random() * 15).toFixed(2); // .toFixed(2) cho giống C#
+                    
+                    p.style.left = left + "%";
+                    p.style.top = top + "%";
+                    p.style.animationDelay = delay + "s";
+                    
+                    // Thêm vào container, thay vì document.write
+                    particlesContainer.appendChild(p);
+                }
+            </script>
+        </div>
+        
+        <div class="register-card">
+            <div class="register-header">
+                <h2>Đăng Ký</h2>
+                <p>Trải nghiệm dịch vụ tiện ích cùng TECHFIX</p>
+            </div>
+
+            <form id="registerForm" name="form_users" class="register-form" method="POST">
+                
+                <div class="form-group icon-input">
+                    <span class="icon"></span>
+                    <input type="text" id="name" name="Name" placeholder="Tên người dùng" class="form-control" required>
+                    <span class="validation-message" data-valmsg-for="Name"></span>
+                </div>
+
+                <div class="form-group icon-input">
+                    <span class="icon"></span>
+                    <input type="text" id="phone" name="Phone" placeholder="Số điện thoại" class="form-control" required>
+                    <span class="validation-message" data-valmsg-for="Phone"></span>
+                </div>
+
+                <div class="form-group icon-input">
+                    <span class="icon"></span>
+                    <input type="password" id="password" name="Password" placeholder="Mật khẩu" class="form-control" required>
+                    <span class="validation-message" data-valmsg-for="Password"></span>
+                </div>
+
+                <div class="form-group icon-input">
+                    <span class="icon"></span>
+                    <textarea id="address" name="Address" placeholder="Địa chỉ" class="form-control" style="max-height: 100px; overflow-y: auto;"></textarea>
+                    <span class="validation-message" data-valmsg-for="Address"></span>
+                </div>
+
+                <button type="submit" class="btn-register">Đăng Ký Ngay</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // Lấy các phần tử DOM
+        const registerForm = document.getElementById("registerForm");
+        const toast = document.getElementById("toast");
+
+        // Hàm hiển thị Toast (giống file login.html)
+        function showToast(message, type = "info") {
+            toast.textContent = message;
+            toast.style.background = type === "error" ? "#d9534f" :
+                                 type === "success" ? "#28a745" :
+                                 type ==="warning" ? "#f0ad4e" : "#333";
+            toast.classList.add("show");
+            setTimeout(() => toast.classList.remove("show"), 3000);
+        }
+
+        // Bắt sự kiện submit của form
+        registerForm.addEventListener("submit", async (e) => {
+            // Ngăn form gửi đi theo cách truyền thống
+            e.preventDefault(); 
+            
+            // Lấy dữ liệu từ form
+            const formData = new FormData(registerForm);
+            const userModel = Object.fromEntries(formData.entries());
+            
+            // Thêm trường 'role' cố định
+            userModel.Role = "customer"; 
+
+            // === BẮT ĐẦU LOGIC CỦA BẠN ===
+            // Đây là nơi bạn sẽ thay thế logic C# (SubmitTask)
+            
+            try {
+                // 1. Gọi API đăng ký
+                // const res = await fetch("/api/register", { // URL API của bạn
+                //     method: "POST",
+                //     headers: { "Content-Type": "application/json" },
+                //     body: JSON.stringify(userModel)
+                // });
+
+                // if (!res.ok) {
+                //     const errorData = await res.json();
+                //     // Giả sử server trả về lỗi "Tài khoản đã tồn tại"
+                //     throw new Error(errorData.message || "Tài khoản đã tồn tại");
+                // }
+
+                // 2. Xử lý khi thành công
+                // Giả lập thành công:
+                console.log("Dữ liệu gửi đi:", userModel);
+                showToast("Đăng ký thành công!", "success");
+
+                // 3. Chờ 3 giây rồi chuyển hướng
+                setTimeout(() => {
+                    window.location.href = "/login.html"; // Chuyển đến trang login
+                }, 3000);
+
+            } catch (err) {
+                // 4. Xử lý khi thất bại
+                console.error("Lỗi đăng ký:", err.message);
+                showToast(err.message, "error");
+            }
+            // === KẾT THÚC LOGIC CỦA BẠN ===
+        });
+    </script>
+
+</body>
+</html>
