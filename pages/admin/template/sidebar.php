@@ -44,7 +44,6 @@ function showToast(message = "Thành công!", type = "success") {
 
 
 <style>
-  /* Sidebar cơ bản */
   .sidebar {
     position: fixed;
     left: 0;
