@@ -3,7 +3,7 @@ include '../../config/db.php';
 include 'template/sidebar.php';
 
 $msg = '';
-$msgType = ''; // success, error, warning
+$msgType = ''; 
 if (isset($_GET['msg'])) {
     $msg = $_GET['msg'];
     $msgType = 'success';

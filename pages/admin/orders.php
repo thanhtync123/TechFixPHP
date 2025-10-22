@@ -42,7 +42,7 @@ $result = mysqli_query($conn, $query);
 ?>
 <main class="p-4">
     <h1 class="mb-3">Quản lý đơn hàng</h1>
-<a href="createOrder.php">Tạo mới đơn hàng</a>
+<a href="order_detail.php">Tạo mới đơn hàng</a>
 
 
     Lọc:
@@ -90,7 +90,7 @@ $result = mysqli_query($conn, $query);
                                 style="<?= $row['status'] == 'completed' ? 'pointer-events: none; color: gray;' : '' ?> ">
                                 Xoá
                             </a> |
-                            <a href="" onclick="">Sửa</a>
+                            <a href="order_detail.php?id=<?= $row['id'] ?>" onclick="">Sửa</a>
                         </td>
                     <?php endwhile; ?>
                 <?php else: ?>
