@@ -12,7 +12,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $equipment_arr = $data['data']['equipments'];
     try {
         if (!isset($_GET['id'])) {
-
             $query = "INSERT INTO `hometech_db`.`orders`
      (`customer_id`, `service_id`, `technician_id`, `schedule_time`, `status`, `total_price`) 
     VALUES ($id, $service_id, $technical_id,'$schedule_time', '$status',$total_price);";
@@ -30,11 +29,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'message' => 'Thêm thành công',
                 'newIdOrder' => $idOrder
             ]);
-        } else {
-            $order_id = intval($_GET['id']);        // ID đơn hàng từ URL
-            $customer_id = intval($data['data']['id']);  // ID khách hàng từ form
-
-            // Cập nhật đơn hàng - đúng ID đơn hàng trong điều kiện WHERE 
+        } else  if (isset($_GET['id'])) {
+            $order_id = intval($_GET['id']);
+            $customer_id = intval($data['data']['id']);
             $queryUpdate = "UPDATE `orders` 
         SET `customer_id` = $customer_id, 
         `service_id` = $service_id, 
@@ -44,12 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         `total_price` = $total_price 
         WHERE (`id` = $order_id)";
             mysqli_query($conn, $queryUpdate);
-
-            // Xóa thiết bị cũ - sửa điều kiện WHERE
             $query = "DELETE FROM `orderequipments` WHERE (`order_id` = $order_id)";
             mysqli_query($conn, $query);
-
-            // Thêm thiết bị mới - dùng order_id đúng
             foreach ($equipment_arr as $eq) {
                 $equipmentId = intval($eq['id']);
                 $equipmentQuantity = intval($eq['quantity']);
@@ -118,7 +111,6 @@ $result = mysqli_query($conn, "select * from users where role = 'customer' ");
     <h1 class="mb-3">
         <?php echo isset($_GET['id']) ? 'Cập nhật đơn hàng' : 'Tạo mới đơn hàng'; ?>
     </h1>
-
     <div class="container-flex">
         <?php if (!isset($_GET['id'])): ?>
             <table>
@@ -287,6 +279,7 @@ $result = mysqli_query($conn, "select * from users where role = 'customer' ");
                     e.unit AS unit,
                     e.price AS price,
                     oe.quantity AS quantity,
+                    e.quantity AS stock_quantity,
                     e.description AS description
                 FROM equipments e
                 INNER JOIN orderequipments oe ON e.id = oe.equipment_id
@@ -324,10 +317,19 @@ $result = mysqli_query($conn, "select * from users where role = 'customer' ");
                                 </td>
                                 <td><?= ($row['unit']) ?></td>
                                 <td class="price"><?= number_format($row['price']) ?></td>
-                                <td><input type="number" value="<?= ($row['quantity']) ?>" min="1" onchange="updateTotalEveryEquipment(this)" width:60px;></td>
+                                <td>
+                                    <input
+                                        type="number"
+                                        value="<?= ($row['quantity']) ?>"
+                                        min="1"
+                                        max="<?= ($row['stock_quantity']) ?>"
+                                        onchange="updateTotalEveryEquipment(this)"
+                                        style="width:60px;">
+                                </td>
+
                                 <td><?= number_format(intval($row['price']) * intval($row['quantity']))  ?></td>
                                 <td><?= ($row['description'] ?? '') ?></td>
-                                <td><button type="button" onclick="this.parentElement.parentElement.remove()">Xóa</button></td>
+                                <td><button type="button" onclick="this.parentElement.parentElement.remove();updateTotalEquipment();">Xóa</button></td>
                             </tr>
                         <?php endwhile; ?>
                     <?php else: ?>
@@ -357,10 +359,9 @@ $result = mysqli_query($conn, "select * from users where role = 'customer' ");
     }
 </style>
 <script>
-    window.onload = function() {
-        updateTotalEquipment();
-
-    };
+    window.addEventListener("load", () => {
+        setTimeout(updateTotalEquipment, 200);
+    });
 
     function cellClick(id, name, phone, address) {
         document.querySelector('input[name="id"]').value = id;
@@ -373,36 +374,57 @@ $result = mysqli_query($conn, "select * from users where role = 'customer' ");
 
     function addEquipment(id, name, img, unit, price, quantity, description) {
         const tbody = document.querySelector('.tableE_C tbody');
-        const emptyRow = tbody.querySelector('tr td[colspan]');
-        if (emptyRow)
-            emptyRow.closest('tr').remove();
-
-        // Xử lý price để loại bỏ định dạng và lấy giá trị số nguyên
         const cleanPrice = parseInt(price.replace(/[^\d]/g, '')) || 0;
+
+        // 🔍 Kiểm tra xem thiết bị đã có trong bảng chưa
+        const existingRow = Array.from(tbody.querySelectorAll('tr')).find(
+            row => row.cells[0]?.textContent == id
+        );
+
+        if (existingRow) {
+            // Nếu đã có, chỉ tăng số lượng
+            const qtyInput = existingRow.querySelector('input[type="number"]');
+            const currentQty = parseInt(qtyInput.value) || 0;
+            const maxQty = parseInt(qtyInput.getAttribute('max')) || 9999;
+
+            if (currentQty < maxQty) {
+                qtyInput.value = currentQty + 1;
+                updateTotalEveryEquipment(qtyInput); // Cập nhật lại tổng tiền từng sản phẩm
+            } else {
+                showToast(`Đã đạt số lượng tối đa (${maxQty})`, "warning");
+            }
+            return; // ✅ Thoát khỏi hàm, không thêm dòng mới
+        }
+
+        // Nếu chưa có thì thêm dòng mới
+        const emptyRow = tbody.querySelector('tr td[colspan]');
+        if (emptyRow) emptyRow.closest('tr').remove();
+
         const initialQty = 1;
         const initialTotal = cleanPrice * initialQty;
 
         const newRow = document.createElement('tr');
         newRow.innerHTML = `
-    <td>${id}</td>
-    <td>${name}</td>
-    <td>${img ? `<img src='../../assets/image/${img}' width='70px'>` : 'Chưa có ảnh'}</td>
-    <td>${unit}</td>
-    <td class="price">${price}</td>
-    <td><input type="number" value="${initialQty}" min="1" max="${quantity}" onchange="updateTotalEveryEquipment(this)" style="width:60px;"></td>
-    <td class="item-total">${initialTotal.toLocaleString()}</td>
-    <td>${description || ''}</td>
-    <td><button type="button" onclick="this.parentElement.parentElement.remove(); updateTotalEquipment();">Xóa</button></td>
+        <td>${id}</td>
+        <td>${name}</td>
+        <td>${img ? `<img src='../../assets/image/${img}' width='70px'>` : 'Chưa có ảnh'}</td>
+        <td>${unit}</td>
+        <td class="price">${cleanPrice.toLocaleString()}</td>
+        <td><input type="number" value="${initialQty}" min="1" max="${quantity}" onchange="updateTotalEveryEquipment(this)" style="width:60px;"></td>
+        <td class="item-total">${initialTotal.toLocaleString()}</td>
+        <td>${description || ''}</td>
+        <td><button type="button" onclick="this.parentElement.parentElement.remove(); updateTotalEquipment();">Xóa</button></td>
     `;
-        tbody.appendChild(newRow);
 
+        tbody.appendChild(newRow);
         updateTotalEquipment();
     }
+
 
     function updateTotalEveryEquipment(input) {
         const row = input.parentElement.parentElement;
         const qty = parseInt(input.value) || 0;
-        const price = parseInt(row.querySelector('.price').textContent.replace(/[^\d]/g, '')) || 0;
+        const price = parseInt(row.querySelector('.price')?.textContent.replace(/[^\d]/g, '')) || 0;
         const total = qty * price;
         row.cells[6].textContent = total.toLocaleString() + '';
         updateTotalEquipment();
@@ -411,20 +433,22 @@ $result = mysqli_query($conn, "select * from users where role = 'customer' ");
     function updateTotalEquipment() {
         let sum = 0;
         const rows = document.querySelectorAll('.tableE_C tbody tr');
-        rows.forEach(row => {
-            const price = parseInt(row.querySelector('.price')?.textContent || 0)
-            const qtyInput = row.querySelector('input[type="number"]');
-            const qty = parseInt(qtyInput?.value || 0);
-            sum += price * qty;
-        })
-        document.getElementById('total_price_equipment').textContent = sum.toLocaleString() + '';
-        const serviceText = document.getElementById('total_price_service').textContent.replace(/[^\d]/g, '');
-        const equipmentText = document.getElementById('total_price_equipment').textContent.replace(/[^\d]/g, '');
-        const service_price = parseInt(serviceText || 0);
-        const equipment_price = parseInt(equipmentText || 0);
-        const total_price = service_price + equipment_price;
-        document.getElementById('total_price').textContent = total_price.toLocaleString();
 
+        // Tính tổng giá trị từ tất cả các hàng
+        rows.forEach(row => {
+            if (!row.querySelector('td[colspan]')) { // Bỏ qua hàng "Không có dữ liệu"
+                const priceText = row.querySelector('.price')?.textContent || '0';
+                const price = parseInt(priceText.replace(/[^\d]/g, '')) || 0;
+                const qtyInput = row.querySelector('input[type="number"]');
+                const qty = parseInt(qtyInput?.value || 0);
+                sum += price * qty;
+            }
+        });
+        document.getElementById('total_price_equipment').textContent = sum.toLocaleString('vi-VN') + ' ₫';
+        const serviceText = document.getElementById('total_price_service').textContent.replace(/[^\d]/g, '');
+        const service_price = parseInt(serviceText || 0);
+        const total_price = service_price + sum;
+        document.getElementById('total_price').textContent = total_price.toLocaleString('vi-VN') + ' ₫';
     }
 
     function selectServiceChange(sel) {
@@ -471,7 +495,7 @@ $result = mysqli_query($conn, "select * from users where role = 'customer' ");
         };
         console.log(data);
 
-        fetch('order_detail.php', {
+        fetch('order_detail.php<?= isset($_GET['id']) ? "?id=" . intval($_GET['id']) : "" ?>', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -484,10 +508,9 @@ $result = mysqli_query($conn, "select * from users where role = 'customer' ");
             .then(result => {
                 console.log(result);
                 if (result.success) {
-                    showToast(result.query, "success");
-
+                    showToast("Thành công!");
                 } else {
-                    showToast("Lỗi:" + result.message, "danger");
+                    showToast("Lỗi: " + result.message, "danger");
                 }
             })
             .catch(err => console.error(err));
