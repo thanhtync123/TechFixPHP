@@ -50,12 +50,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             VALUES ($order_id, $equipmentId, $equipmentQuantity)";
                 mysqli_query($conn, $query);
             }
-
             echo json_encode([
                 'success' => true,
                 'message' => 'Cập nhật thành công',
                 'query' => $queryUpdate
-
             ]);
         }
     } catch (Exception $e) {
@@ -177,17 +175,21 @@ $result = mysqli_query($conn, "select * from users where role = 'customer' ");
                             <td><?= number_format($row['price']) ?></td>
                             <td><?= $row['quantity'] ?></td>
                             <td><?= $row['description'] ?></td>
-                            <td onclick="addEquipment
-                            (
-                            '<?= $row['id'] ?>'
-                            ,'<?= $row['name'] ?>'
-                            ,'<?= $row['img'] ?>'
-                            ,'<?= $row['unit'] ?>'
-                        ,'<?= number_format($row['price']) ?>'
-                            ,'<?= $row['quantity'] ?>'
-                            ,'<?= $row['description'] ?>'
-                            )
-                            ">+</td>
+                            <td>
+                                <button
+                                    type="button"
+                                    onclick="addEquipment(
+                                        '<?= $row['id'] ?>',
+                                        '<?= htmlspecialchars($row['name'], ENT_QUOTES) ?>',
+                                        '<?= $row['img'] ?>',
+                                        '<?= $row['unit'] ?>',
+                                        '<?= $row['price'] ?>',
+                                        '<?= $row['quantity'] ?>',
+                                        '<?= htmlspecialchars($row['description'], ENT_QUOTES) ?>'
+                                    )"
+                                    <?= isset($oldOrder) && $oldOrder['status'] === 'completed' ? 'disabled' : '' ?>>+</button>
+                            </td>
+
 
                         </tr>
                     <?php endwhile; ?>
@@ -256,8 +258,16 @@ $result = mysqli_query($conn, "select * from users where role = 'customer' ");
                     <option value="cancelled" <?= isset($oldOrder) && $oldOrder['status'] == 'cancelled' ? 'selected' : '' ?>>Đã hủy</option>
                 </select>
             </div>
-            <button type="button" onclick="submitOrder()">
+            <button
+                type="button"
+                onclick="submitOrder()"
+                <?= isset($oldOrder) && $oldOrder['status'] === 'completed' ? 'disabled' : '' ?>>
                 <?= isset($_GET['id']) ? 'Cập nhật' : 'Lưu' ?>
+            </button>
+            <button
+                type="button"
+                onclick="invoice_order()">
+                IN
             </button>
 
         </div>
@@ -382,7 +392,6 @@ $result = mysqli_query($conn, "select * from users where role = 'customer' ");
         );
 
         if (existingRow) {
-            // Nếu đã có, chỉ tăng số lượng
             const qtyInput = existingRow.querySelector('input[type="number"]');
             const currentQty = parseInt(qtyInput.value) || 0;
             const maxQty = parseInt(qtyInput.getAttribute('max')) || 9999;
@@ -390,10 +399,9 @@ $result = mysqli_query($conn, "select * from users where role = 'customer' ");
             if (currentQty < maxQty) {
                 qtyInput.value = currentQty + 1;
                 updateTotalEveryEquipment(qtyInput); // Cập nhật lại tổng tiền từng sản phẩm
-            } else {
+            } else
                 showToast(`Đã đạt số lượng tối đa (${maxQty})`, "warning");
-            }
-            return; // ✅ Thoát khỏi hàm, không thêm dòng mới
+            return;
         }
 
         // Nếu chưa có thì thêm dòng mới
@@ -509,6 +517,7 @@ $result = mysqli_query($conn, "select * from users where role = 'customer' ");
                 console.log(result);
                 if (result.success) {
                     showToast("Thành công!");
+                    setTimeout(() => location.reload(), 1000);
                 } else {
                     showToast("Lỗi: " + result.message, "danger");
                 }
@@ -516,4 +525,84 @@ $result = mysqli_query($conn, "select * from users where role = 'customer' ");
             .catch(err => console.error(err));
 
     }
+
+   function invoice_order() {
+    // Kiểm tra thông tin cần thiết trước khi in
+    const customerId = document.querySelector('input[name="id"]').value;
+    if (!customerId) {
+        showToast("Vui lòng chọn khách hàng trước khi in hóa đơn", "warning");
+        return;
+    }
+
+    // Thu thập dữ liệu đơn hàng
+    const orderId = document.querySelector('input[name="idOrder"]').value;
+    const customerName = document.querySelector('input[name="name"]').value;
+    const phone = document.querySelector('input[name="phone"]').value;
+    const address = document.querySelector('input[name="address"]').value;
+    const total = document.getElementById('total_price').textContent.replace(/[^\d]/g, '');
+    
+    // Lấy thông tin dịch vụ
+    const serviceSelect = document.querySelector('select[name="services"]');
+    const serviceName = serviceSelect.options[serviceSelect.selectedIndex]?.text || '';
+    const servicePrice = document.getElementById('total_price_service').textContent.replace(/[^\d]/g, '');
+    
+    // Lấy thông tin kỹ thuật viên
+    const technicalSelect = document.querySelector('select[name="technical"]');
+    const technicalName = technicalSelect.options[technicalSelect.selectedIndex]?.text || '';
+    const scheduleTime = document.querySelector('input[name="schedule_time"]').value;
+
+    // Lấy danh sách thiết bị từ bảng
+    const equipments = [];
+    document.querySelectorAll('.tableE_C tbody tr').forEach(row => {
+        // Bỏ qua dòng "Không có dữ liệu"
+        if (!row.querySelector('td[colspan]')) {
+            const cells = row.querySelectorAll('td');
+            const qtyInput = row.querySelector('input[type="number"]');
+            
+            if (cells.length > 0 && qtyInput) {
+                equipments.push({
+                    name: cells[1].textContent.trim(),
+                    price: parseInt(cells[4].textContent.replace(/[^\d]/g, '')) || 0,
+                    quantity: parseInt(qtyInput.value) || 0
+                });
+            }
+        }
+    });
+
+    // Tạo form ẩn để submit
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'invoice_order.php';
+    form.target = '_blank'; // Mở trong tab mới
+
+    // Thêm các trường dữ liệu vào form
+    const formData = {
+        orderId,
+        customerName,
+        phone,
+        address,
+        serviceName,
+        servicePrice,
+        technicalName,
+        scheduleTime,
+        total,
+        equipments: JSON.stringify(equipments)
+    };
+
+    // Tạo các input hidden để gửi dữ liệu
+    for (const key in formData) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = formData[key];
+        form.appendChild(input);
+    }
+
+    // Thêm form vào body và submit
+    document.body.appendChild(form);
+    form.submit();
+    
+    // Xóa form sau khi submit
+    setTimeout(() => form.remove(), 100);
+}
 </script>
