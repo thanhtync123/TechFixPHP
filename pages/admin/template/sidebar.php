@@ -1,23 +1,28 @@
 <!-- templates/sidebar.php -->
- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 <aside class="sidebar">
   <div class="sidebar-logo">
     <h2>Admin</h2>
+    <?php
+    session_start();
+    ?>
+    <p>Chào <?= $_SESSION['name'] ?></p>
   </div>
 
   <ul class="sidebar-menu">
-    <li><a href="dashboard.php" >📊 Dashboard</a></li>
+    <li><a href="dashboard.php">📊 Dashboard</a></li>
     <li><a href="users.php">👥 Người dùng</a></li>
     <li><a href="equipments.php">📦 Sản phẩm</a></li>
     <li><a href="orders.php">🧾 Đơn hàng</a></li>
-       <li><a href="services.php">🧾 Dịch vụ</a></li>
+    <li><a href="services.php">🧾 Dịch vụ</a></li>
     <li><a href="settings.php">⚙️ Cài đặt</a></li>
+    <li><a href="../public_page/signout.php?action=logout">⚙️ Đăng xuất</a></li>
     <li><a href="../index.php">🏠 Về trang chủ</a></li>
   </ul>
 </aside>
@@ -31,15 +36,15 @@
 </div>
 
 <script>
-function showToast(message = "Thành công!", type = "success") {
-  const toastEl = document.getElementById("appToast");
-  const toastBody = document.getElementById("toastMessage");
-  toastEl.className = `toast align-items-center text-bg-${type} border-0`;
-  toastBody.textContent = message;
+  function showToast(message = "Thành công!", type = "success") {
+    const toastEl = document.getElementById("appToast");
+    const toastBody = document.getElementById("toastMessage");
+    toastEl.className = `toast align-items-center text-bg-${type} border-0`;
+    toastBody.textContent = message;
 
-  const toast = new bootstrap.Toast(toastEl);
-  toast.show();
-}
+    const toast = new bootstrap.Toast(toastEl);
+    toast.show();
+  }
 </script>
 
 
@@ -50,7 +55,8 @@ function showToast(message = "Thành công!", type = "success") {
     top: 0;
     width: 220px;
     height: 100vh;
-    background: #1e293b; /* xanh đậm */
+    background: #1e293b;
+    /* xanh đậm */
     color: #fff;
     display: flex;
     flex-direction: column;

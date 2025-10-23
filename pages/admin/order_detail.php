@@ -183,7 +183,7 @@ $result = mysqli_query($conn, "select * from users where role = 'customer' ");
                                         '<?= htmlspecialchars($row['name'], ENT_QUOTES) ?>',
                                         '<?= $row['img'] ?>',
                                         '<?= $row['unit'] ?>',
-                                        '<?= $row['price'] ?>',
+                                     '<?= str_replace(',', '', $row['price']) ?>', 
                                         '<?= $row['quantity'] ?>',
                                         '<?= htmlspecialchars($row['description'], ENT_QUOTES) ?>'
                                     )"

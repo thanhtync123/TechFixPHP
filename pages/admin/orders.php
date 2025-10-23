@@ -82,7 +82,7 @@ $result = mysqli_query($conn, $query);
                                 <option value="cancelled" <?= $row['status'] == 'cancelled' ? 'selected' : '' ?>>Đã hủy đơn</option>
                             </select>
                         </td>
-                        <td><?= empty($row['total_price']) ? 'Chưa xác định' : $row['total_price'] ?></td>
+<td><?= empty($row['total_price']) ? 'Chưa xác định' : number_format($row['total_price']) ?></td>
                         <td><?= $row['created_at'] ?></td>
                         <td><?= $row['updated_at'] ?></td>
                         <td>
