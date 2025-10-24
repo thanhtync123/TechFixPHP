@@ -33,13 +33,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $order_id = intval($_GET['id']);
             $customer_id = intval($data['data']['id']);
             $queryUpdate = "UPDATE `orders` 
-        SET `customer_id` = $customer_id, 
-        `service_id` = $service_id, 
-        `technician_id` = $technical_id, 
-        `schedule_time` = '$schedule_time', 
-        `status` = '$status', 
-        `total_price` = $total_price 
-        WHERE (`id` = $order_id)";
+                            SET `customer_id` = $customer_id, 
+                            `service_id` = $service_id, 
+                            `technician_id` = $technical_id, 
+                            `schedule_time` = '$schedule_time', 
+                            `status` = '$status', 
+                            `total_price` = $total_price 
+                            WHERE (`id` = $order_id)";
             mysqli_query($conn, $queryUpdate);
             $query = "DELETE FROM `orderequipments` WHERE (`order_id` = $order_id)";
             mysqli_query($conn, $query);
@@ -385,8 +385,6 @@ $result = mysqli_query($conn, "select * from users where role = 'customer' ");
     function addEquipment(id, name, img, unit, price, quantity, description) {
         const tbody = document.querySelector('.tableE_C tbody');
         const cleanPrice = parseInt(price.replace(/[^\d]/g, '')) || 0;
-
-        // 🔍 Kiểm tra xem thiết bị đã có trong bảng chưa
         const existingRow = Array.from(tbody.querySelectorAll('tr')).find(
             row => row.cells[0]?.textContent == id
         );
@@ -398,13 +396,11 @@ $result = mysqli_query($conn, "select * from users where role = 'customer' ");
 
             if (currentQty < maxQty) {
                 qtyInput.value = currentQty + 1;
-                updateTotalEveryEquipment(qtyInput); // Cập nhật lại tổng tiền từng sản phẩm
+                updateTotalEveryEquipment(qtyInput); 
             } else
                 showToast(`Đã đạt số lượng tối đa (${maxQty})`, "warning");
             return;
         }
-
-        // Nếu chưa có thì thêm dòng mới
         const emptyRow = tbody.querySelector('tr td[colspan]');
         if (emptyRow) emptyRow.closest('tr').remove();
 
@@ -441,10 +437,8 @@ $result = mysqli_query($conn, "select * from users where role = 'customer' ");
     function updateTotalEquipment() {
         let sum = 0;
         const rows = document.querySelectorAll('.tableE_C tbody tr');
-
-        // Tính tổng giá trị từ tất cả các hàng
         rows.forEach(row => {
-            if (!row.querySelector('td[colspan]')) { // Bỏ qua hàng "Không có dữ liệu"
+            if (!row.querySelector('td[colspan]')) {
                 const priceText = row.querySelector('.price')?.textContent || '0';
                 const price = parseInt(priceText.replace(/[^\d]/g, '')) || 0;
                 const qtyInput = row.querySelector('input[type="number"]');
@@ -527,34 +521,24 @@ $result = mysqli_query($conn, "select * from users where role = 'customer' ");
     }
 
    function invoice_order() {
-    // Kiểm tra thông tin cần thiết trước khi in
     const customerId = document.querySelector('input[name="id"]').value;
     if (!customerId) {
         showToast("Vui lòng chọn khách hàng trước khi in hóa đơn", "warning");
         return;
     }
-
-    // Thu thập dữ liệu đơn hàng
     const orderId = document.querySelector('input[name="idOrder"]').value;
     const customerName = document.querySelector('input[name="name"]').value;
     const phone = document.querySelector('input[name="phone"]').value;
     const address = document.querySelector('input[name="address"]').value;
     const total = document.getElementById('total_price').textContent.replace(/[^\d]/g, '');
-    
-    // Lấy thông tin dịch vụ
     const serviceSelect = document.querySelector('select[name="services"]');
     const serviceName = serviceSelect.options[serviceSelect.selectedIndex]?.text || '';
     const servicePrice = document.getElementById('total_price_service').textContent.replace(/[^\d]/g, '');
-    
-    // Lấy thông tin kỹ thuật viên
     const technicalSelect = document.querySelector('select[name="technical"]');
     const technicalName = technicalSelect.options[technicalSelect.selectedIndex]?.text || '';
     const scheduleTime = document.querySelector('input[name="schedule_time"]').value;
-
-    // Lấy danh sách thiết bị từ bảng
     const equipments = [];
     document.querySelectorAll('.tableE_C tbody tr').forEach(row => {
-        // Bỏ qua dòng "Không có dữ liệu"
         if (!row.querySelector('td[colspan]')) {
             const cells = row.querySelectorAll('td');
             const qtyInput = row.querySelector('input[type="number"]');
@@ -569,13 +553,10 @@ $result = mysqli_query($conn, "select * from users where role = 'customer' ");
         }
     });
 
-    // Tạo form ẩn để submit
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = 'invoice_order.php';
-    form.target = '_blank'; // Mở trong tab mới
-
-    // Thêm các trường dữ liệu vào form
+    form.target = '_blank'; 
     const formData = {
         orderId,
         customerName,
@@ -588,8 +569,6 @@ $result = mysqli_query($conn, "select * from users where role = 'customer' ");
         total,
         equipments: JSON.stringify(equipments)
     };
-
-    // Tạo các input hidden để gửi dữ liệu
     for (const key in formData) {
         const input = document.createElement('input');
         input.type = 'hidden';
@@ -597,12 +576,8 @@ $result = mysqli_query($conn, "select * from users where role = 'customer' ");
         input.value = formData[key];
         form.appendChild(input);
     }
-
-    // Thêm form vào body và submit
     document.body.appendChild(form);
     form.submit();
-    
-    // Xóa form sau khi submit
     setTimeout(() => form.remove(), 100);
 }
 </script>
