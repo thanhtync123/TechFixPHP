@@ -11,8 +11,14 @@
     <h2>Admin</h2>
     <?php
     session_start();
+    if (!isset($_SESSION['name'])) {
+      header("Location: /TechFixPHP/pages/public_page/login.php");
+      exit(); 
+    }
     ?>
-    <p>Chào <?= $_SESSION['name'] ?></p>
+
+    <p>Chào <?= htmlspecialchars($_SESSION['name']) ?></p>
+
   </div>
 
   <ul class="sidebar-menu">
@@ -22,7 +28,7 @@
     <li><a href="orders.php">🧾 Đơn hàng</a></li>
     <li><a href="services.php">🧾 Dịch vụ</a></li>
     <li><a href="settings.php">⚙️ Cài đặt</a></li>
-    <li><a href="../public_page/signout.php?action=logout">⚙️ Đăng xuất</a></li>
+    <li><a href="../public_page/logout.php?action=logout">⚙️ Đăng xuất</a></li>
     <li><a href="../index.php">🏠 Về trang chủ</a></li>
   </ul>
 </aside>
