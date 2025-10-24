@@ -10,7 +10,7 @@ if (isset($_GET['delete'])) {
     } catch (Exception $e) {
         if (str_contains($e->getMessage(), "foreign key constraint"))
             $msg = 'Sản phẩm này đang có liên kết không xóa được';
-    }
+    }//121212
 }
 $img = '';
 if (isset($_POST['save'])) {
