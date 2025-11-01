@@ -2,19 +2,19 @@
 session_start();
 include '../config/db.php';
 
-// Kiểm tra đăng nhập
+// ✅ Kiểm tra đăng nhập
 if (!isset($_SESSION['user']) || $_SESSION['role'] !== 'customer') {
-    header("Location: /TechFixPHP/page/public_page/admin/login.php");
+    header("Location: /TechFixPHP/pages/public_page/login.php");
     exit();
 }
 
 $customer_id = $_SESSION['user']['id'];
-$order_id = $_GET['order_id'] ?? 0;
+$booking_id = $_GET['booking_id'] ?? 0;
 
-// Kiểm tra đơn hàng hợp lệ & thuộc khách hàng này
+// ✅ Kiểm tra đơn hàng hợp lệ & thuộc khách hàng này
 $query = "SELECT * FROM bookings WHERE id = ? AND customer_id = ? AND status = 'completed'";
 $stmt = $conn->prepare($query);
-$stmt->bind_param("ii", $order_id, $customer_id);
+$stmt->bind_param("ii", $booking_id, $customer_id);
 $stmt->execute();
 $order = $stmt->get_result()->fetch_assoc();
 
@@ -22,9 +22,9 @@ if (!$order) {
     die("<p style='text-align:center;color:red;'>Không tìm thấy đơn hàng hoặc chưa hoàn thành.</p>");
 }
 
-// Kiểm tra đã đánh giá chưa
-$check = $conn->prepare("SELECT * FROM reviews WHERE order_id = ? AND customer_id = ?");
-$check->bind_param("ii", $order_id, $customer_id);
+// ✅ Kiểm tra đã đánh giá chưa
+$check = $conn->prepare("SELECT * FROM reviews WHERE booking_id = ? AND customer_id = ?");
+$check->bind_param("ii", $booking_id, $customer_id);
 $check->execute();
 $review = $check->get_result()->fetch_assoc();
 
@@ -32,15 +32,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$review) {
     $rating = intval($_POST['rating']);
     $comment = trim($_POST['comment']);
 
-    $insert = $conn->prepare("INSERT INTO reviews (order_id, customer_id, rating, comment, created_at) VALUES (?, ?, ?, ?, NOW())");
-    $insert->bind_param("iiis", $order_id, $customer_id, $rating, $comment);
+    $insert = $conn->prepare("INSERT INTO reviews (booking_id, customer_id, rating, comment, created_at) VALUES (?, ?, ?, ?, NOW())");
+    $insert->bind_param("iiis", $booking_id, $customer_id, $rating, $comment);
     $insert->execute();
 
     echo "<script>alert('Cảm ơn bạn đã đánh giá!'); window.location='my_booking.php';</script>";
     exit;
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -55,12 +54,8 @@ body {font-family:'Poppins',sans-serif;background:#f4f6fa;margin:0;padding:40px;
 }
 h2{text-align:center;margin-bottom:20px;color:#333;}
 .stars input {display:none;}
-.stars label {
-    font-size:30px;color:#ccc;cursor:pointer;
-}
-.stars input:checked ~ label, .stars label:hover, .stars label:hover ~ label {
-    color:#ffcc00;
-}
+.stars label {font-size:30px;color:#ccc;cursor:pointer;}
+.stars input:checked ~ label, .stars label:hover, .stars label:hover ~ label {color:#ffcc00;}
 textarea {
     width:100%;height:100px;border:1px solid #ccc;border-radius:5px;
     padding:10px;font-family:inherit;resize:none;

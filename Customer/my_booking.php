@@ -114,7 +114,7 @@ th{background:#0099ff;color:#fff}
                         </td>
                         <td>
                             <?php if ($row['status'] === 'completed'): ?>
-                                <a href="review.php?order_id=<?= $row['id'] ?>" style="color:#ff9800;">⭐ Đánh giá</a>
+                                <a href="reviews.php?order_id=<?= $row['id'] ?>" style="color:#ff9800;">⭐ Đánh giá</a>
                             <?php else: ?>
                                 <span style="color:#aaa;">---</span>
                             <?php endif; ?>

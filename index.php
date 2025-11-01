@@ -41,7 +41,7 @@ $name = $_SESSION['name'] ?? 'User';
                 <?php if ($role === 'admin'): ?>
                     <a href="/TechFixPHP/pages/admin/dashboard.php">Trang Quản Trị</a>
                 <?php elseif ($role === 'technical'): ?>
-                    <a href="/TechFixPHP/pages/admin/technicianschedule.php">Lịch Làm Việc</a>
+                    <a href="/TechFixPHP/pages/admin/technician_schedule.php">Lịch Làm Việc</a>
                 <?php endif; ?>
                 <?php if (!$isLoggedIn): ?>
                     <a href="/TechFixPHP/pages/public_page/register.php">Đăng Ký</a>
@@ -216,6 +216,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 </script>
+<?php include __DIR__ . '/pages/public_page/chatbot.php'; ?>
 
 </body>
 </html>

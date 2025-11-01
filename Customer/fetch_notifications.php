@@ -1,33 +1,37 @@
 <?php
 session_start();
-header('Content-Type: application/json');
+include '../config/db.php'; // Đường dẫn tới file db.php
 
-include '../config/db.php'; // chỉnh lại nếu db.php ở nơi khác
-
-if (!isset($_SESSION['user'])) {
-    echo json_encode([]);
+// Chỉ khách hàng mới có thông báo
+if (!isset($_SESSION['user']) || $_SESSION['role'] !== 'customer') {
+    echo json_encode([]); // Trả về mảng rỗng
     exit();
 }
 
 $customer_id = $_SESSION['user']['id'] ?? 0;
 
-$query = "
-    SELECT id, message, status, 
-           DATE_FORMAT(created_at, '%d/%m/%Y %H:%i') AS created_at
-    FROM notifications
-    WHERE customer_id = ?
-    ORDER BY created_at DESC
-    LIMIT 10
-";
+if ($customer_id === 0) {
+    echo json_encode([]);
+    exit;
+}
 
-$stmt = $conn->prepare($query);
+// 1. Lấy tất cả thông báo của khách hàng này
+$stmt = $conn->prepare("
+    SELECT message, status, created_at 
+    FROM notifications 
+    WHERE customer_id = ? 
+    ORDER BY created_at DESC 
+    LIMIT 10
+");
 $stmt->bind_param("i", $customer_id);
 $stmt->execute();
 $result = $stmt->get_result();
+$notifications = $result->fetch_all(MYSQLI_ASSOC);
 
-$notifications = [];
-while ($row = $result->fetch_assoc()) {
-    $notifications[] = $row;
-}
+// 2. Tự động "đánh dấu đã đọc" các thông báo chưa đọc
+// (Chúng ta làm việc này SAU KHI lấy dữ liệu ở trên)
+$conn->query("UPDATE notifications SET status = 'read' WHERE customer_id = $customer_id AND status = 'unread'");
 
+// 3. Trả về dữ liệu JSON cho JavaScript
 echo json_encode($notifications);
+?>

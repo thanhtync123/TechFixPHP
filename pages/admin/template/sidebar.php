@@ -24,7 +24,7 @@
 
   <ul class="sidebar-menu">
     <li><a href="dashboard.php">📊 Dashboard</a></li>
-    <li><a href="technician_schedule.php">🛠️ Kỹ thuật viên</a></li>
+    <li><a href="admin_dispatch.php">🛠️ Kỹ thuật viên</a></li>
     <li><a href="users.php">👥 Người dùng</a></li>
     <li><a href="equipments.php">📦 Sản phẩm</a></li>
     <li><a href="orders.php">🧾 Đơn hàng</a></li>

@@ -1,0 +1,222 @@
+/*
+ * === TECHFIX ADMIN DISPATCH STYLESHEET ===
+ * Phiên bản thiết kế: "Professional Blue"
+ */
+
+/* === CÀI ĐẶT TỔNG THỂ === */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #f8f9fa; /* Màu nền xám cực nhạt, sạch sẽ */
+    color: #212529; /* Màu chữ đen xám, dịu mắt */
+    line-height: 1.6;
+    margin: 0;
+}
+
+.container {
+    max-width: 1600px;
+    margin: 30px auto;
+    padding: 0 30px;
+}
+
+/* === TIÊU ĐỀ & PHÂN CÁCH === */
+h2 {
+    text-align: center;
+    color: #343a40; /* Màu tiêu đề đậm */
+    font-weight: 700;
+    margin-bottom: 40px;
+    font-size: 2.25rem; /* 36px */
+}
+
+h3 {
+    font-size: 1.5rem; /* 24px */
+    font-weight: 600;
+    color: #007bff; /* Màu xanh chủ đạo */
+    border-bottom: 2px solid #dee2e6; /* Đường viền xám nhạt */
+    padding-bottom: 15px;
+    margin-top: 0;
+    margin-bottom: 25px;
+}
+
+/* === BỐ CỤC & WIDGET === */
+.dispatch-layout {
+    display: flex;
+    flex-wrap: wrap; /* Tự xuống hàng trên di động */
+    gap: 30px; /* Khoảng cách giữa 2 cột */
+}
+
+.main-column {
+    flex: 3; /* Cột chính chiếm 3 phần */
+    min-width: 600px;
+}
+
+.sidebar-column {
+    flex: 1; /* Cột phụ chiếm 1 phần */
+    min-width: 320px;
+}
+
+.widget {
+    background: #ffffff;
+    border-radius: 12px; /* Bo góc mềm mại */
+    padding: 25px 30px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06); /* Đổ bóng hiện đại */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hiệu ứng "nổi" lên khi trỏ chuột */
+.widget:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+/* === BẢNG ĐIỀU PHỐI (TABLE) === */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.9rem; /* 14.4px */
+}
+
+th, td {
+    padding: 16px; /* Tăng padding cho thoáng */
+    border-bottom: 1px solid #dee2e6; /* Viền xám nhạt */
+    vertical-align: middle;
+}
+
+th {
+    background-color: #343a40; /* Màu header tối, sang trọng */
+    color: #ffffff;
+    font-size: 0.75rem; /* 12px */
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Hiệu ứng hover cho hàng */
+tbody tr:hover {
+    background-color: #f8f9fa; /* Nổi bật hàng đang trỏ chuột */
+}
+
+/* Định dạng text phụ trong bảng */
+td strong {
+    color: #333;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+td small {
+    color: #6c757d; /* Màu xám cho text phụ */
+    font-size: 0.85rem;
+    display: block;
+    margin-top: 2px;
+}
+
+/* === TRẠNG THÁI (STATUS PILLS) === */
+.status {
+    padding: 6px 15px;
+    border-radius: 50px; /* Bo tròn (pill shape) */
+    font-weight: 700;
+    font-size: 0.75rem; /* 12px */
+    text-transform: uppercase;
+    text-align: center;
+    min-width: 90px;
+    display: inline-block;
+    border: 1px solid transparent;
+}
+
+/* Kiểu status mới: Nền nhạt, chữ đậm (dễ đọc hơn) */
+.pending {
+    background-color: #fff3cd; /* Vàng nhạt */
+    color: #664d03; /* Vàng đậm */
+    border-color: #ffe69c;
+}
+.confirmed {
+    background-color: #cce5ff; /* Xanh dương nhạt */
+    color: #004085; /* Xanh dương đậm */
+    border-color: #b8daff;
+}
+.completed {
+    background-color: #d4edda; /* Xanh lá nhạt */
+    color: #155724; /* Xanh lá đậm */
+    border-color: #c3e6cb;
+}
+.cancelled {
+    background-color: #f8d7da; /* Đỏ nhạt */
+    color: #721c24; /* Đỏ đậm */
+    border-color: #f5c6cb;
+}
+
+/* === FORM (SELECT & BUTTON) === */
+select,
+.assign-form button,
+.action-btn {
+    padding: 10px 15px;
+    border-radius: 8px; /* Bo góc nhất quán */
+    border: 1px solid #ced4da; /* Viền xám chuẩn */
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    box-sizing: border-box; /* Đảm bảo padding không làm vỡ layout */
+}
+
+select {
+    background-color: #fff;
+}
+
+/* Hiệu ứng Focus viền xanh */
+select:focus,
+input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0,123,255,.25);
+    outline: none;
+}
+
+.assign-form {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Khoảng cách giữa select và button */
+    min-width: 250px; /* Đảm bảo form không bị quá hẹp */
+}
+.assign-form select {
+    flex: 1; /* Select co giãn */
+}
+
+.assign-form button {
+    background-color: #007bff; /* Màu xanh chủ đạo */
+    color: #ffffff;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+.assign-form button:hover {
+    background-color: #0056b3; /* Đậm hơn khi hover */
+}
+
+/* === CỘT PHỤ (SIDEBAR LỊCH RẢNH) === */
+#scheduleContainer {
+    margin-top: 20px;
+}
+
+#scheduleContainer table {
+    font-size: 0.85rem; /* Chữ nhỏ hơn 1 chút */
+}
+
+/* Header bảng phụ (màu nhạt) */
+#scheduleContainer th {
+    background-color: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+}
+
+#scheduleContainer .date-group {
+    background-color: #e9ecef; /* Nền xám cho ngày */
+    color: #007bff; /* Chữ xanh cho ngày */
+    font-weight: 700;
+    padding: 10px 15px;
+    margin-top: 20px;
+    border-radius: 8px;
+}
+
+/* * Các trạng thái trong lịch rảnh (dùng màu đặc)
+ * (Lấy từ code fetch_schedule.php của bạn) 
+ */
+#scheduleContainer .status.available { background-color: #2ecc71; color: #fff; }
+#scheduleContainer .status.busy { background-color: #f39c12; color: #fff; }
+#scheduleContainer .status.off { background-color: #e74c3c; color: #fff; }
