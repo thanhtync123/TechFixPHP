@@ -217,6 +217,32 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 <?php include __DIR__ . '/pages/public_page/chatbot.php'; ?>
+<script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const chatButton = document.getElementById("chatButton");
+            const chatWindow = document.getElementById("chatWindow");
+            const closeChat = document.getElementById("closeChat");
 
+            chatButton.addEventListener("click", () => {
+                chatWindow.style.display = "block";
+            });
+
+            closeChat.addEventListener("click", () => {
+                chatWindow.style.display = "none";
+            });
+        });
+    </script>
+
+    <script type="text/javascript">
+    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+    (function(){
+    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+    s1.async=true;
+    s1.src='https://embed.tawk.to/6905f9c17909cc195310a2e1/1j8vlf7ib'; // Code của bạn
+    s1.charset='UTF-8';
+    s1.setAttribute('crossorigin','*');
+    s0.parentNode.insertBefore(s1,s0);
+    })();
+    </script>
 </body>
 </html>

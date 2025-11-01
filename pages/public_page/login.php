@@ -144,8 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
     <div id="toast" class="toast"></div>
 
     <!-- Face API -->
-    <script src="js/faceAuth.js"></script>
-    <script>
+<script src="/TechFixPHP/assets/js/faceAuth.js"></script>    <script>
         const toast = document.getElementById("toast");
         const loginForm = document.getElementById("loginForm");
         const faceView = document.getElementById("face-login-view");

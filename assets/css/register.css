@@ -501,3 +501,96 @@ html {
         font-size: 1.1rem;
     }
 }
+/* =====================================
+   FIX CHO BỐ CỤC FLEX VÀ CAMERA
+===================================== */
+
+/* 1. Sửa lại Form để cho phép cuộn nội dung */
+.register-form {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto; /* CHO PHÉP CUỘN NẾU NỘI DUNG QUÁ DÀI */
+    width: 100%;
+    align-items: center;
+    padding-right: 15px; /* Thêm khoảng đệm cho thanh cuộn */
+    margin-right: -15px; /* Bù lại khoảng đệm */
+}
+
+/* 2. Đảm bảo các khối input chiếm đủ chiều rộng */
+.form-group {
+    margin-bottom: 1rem; /* Giảm khoảng cách 1 chút */
+    position: relative;
+    width: 100%;
+    flex-shrink: 0; /* Ngăn co lại */
+}
+
+/* 3. Định dạng tiêu đề "Bước 1", "Bước 2" */
+.register-form h5 {
+    color: #fff;
+    font-weight: 600;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    text-align: left;
+    width: 100%;
+    text-shadow: 0 0 5px rgba(0,0,0,0.5);
+}
+
+/* 4. Định dạng khối Camera */
+#face-register-view {
+    width: 100%;
+    flex-shrink: 0; /* Ngăn co lại */
+}
+
+.video-container {
+    position: relative;
+    width: 100%;
+    padding-top: 75%; /* Tỷ lệ 4:3 */
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    border: 2px solid rgba(255,255,255,0.2);
+}
+
+video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1); /* Lật ngược camera selfie */
+}
+
+/* 5. NÚT BẬT CAMERA (Quan trọng nhất) */
+.btn-camera {
+    display: block !important; /* Ép hiển thị */
+    visibility: visible !important; /* Ép hiển thị */
+    opacity: 1 !important; /* Ép hiển thị */
+    
+    background: #007bff; /* Màu xanh cho nổi bật */
+    color: white;
+    margin-top: 0.5rem;
+    width: 100%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 18px; /* Giống ô input */
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background 0.3s ease;
+}
+
+.btn-camera:hover {
+    background: #0056b3;
+}
+
+/* 6. Text nhỏ dưới nút camera */
+#face-register-view small {
+    color: #ccc; /* Đổi màu cho dễ đọc */
+    text-align: center;
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 15px;
+}

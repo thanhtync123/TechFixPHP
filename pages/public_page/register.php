@@ -1,98 +1,6 @@
 <?php
-session_start();
-error_reporting(E_ALL);
-ini_set('display_errors', 0); // Set to 1 for local debug
-
-// DB config (shared)
-$dbPath = __DIR__ . '/../../config/db.php';
-if (!file_exists($dbPath)) {
-    error_log("DB config not found: $dbPath");
-    die('Database configuration missing.');
-}
-require_once $dbPath;
-
-/* Helper to support projects using PDO or MySQLi (same style as other pages) */
-function has_pdo() { return isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO; }
-function has_mysqli() { return (isset($GLOBALS['conn']) && $GLOBALS['conn'] instanceof mysqli) || (isset($GLOBALS['mysqli']) && $GLOBALS['mysqli'] instanceof mysqli); }
-function get_mysqli() {
-    if (isset($GLOBALS['conn']) && $GLOBALS['conn'] instanceof mysqli) return $GLOBALS['conn'];
-    if (isset($GLOBALS['mysqli']) && $GLOBALS['mysqli'] instanceof mysqli) return $GLOBALS['mysqli'];
-    return null;
-}
-
-$errors = [];
-$old = ['Name'=>'','Phone'=>'','Address'=>''];
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = trim($_POST['Name'] ?? '');
-    $phone = trim($_POST['Phone'] ?? '');
-    $password = $_POST['Password'] ?? '';
-    $address = trim($_POST['Address'] ?? '');
-    $role = 'customer';
-
-    $old['Name'] = htmlspecialchars($name, ENT_QUOTES);
-    $old['Phone'] = htmlspecialchars($phone, ENT_QUOTES);
-    $old['Address'] = htmlspecialchars($address, ENT_QUOTES);
-
-    // Basic validation
-    if ($name === '') $errors[] = 'Vui lòng nhập tên.';
-    if ($phone === '') $errors[] = 'Vui lòng nhập số điện thoại.';
-    if ($password === '' || strlen($password) < 6) $errors[] = 'Mật khẩu phải ít nhất 6 ký tự.';
-
-    if (empty($errors)) {
-        $hashed = password_hash($password, PASSWORD_DEFAULT);
-
-        // Check if phone exists
-        $exists = false;
-        if (has_pdo()) {
-            $stmt = $pdo->prepare("SELECT id FROM users WHERE phone = ? LIMIT 1");
-            $stmt->execute([$phone]);
-            $exists = (bool) $stmt->fetchColumn();
-        } elseif (has_mysqli()) {
-            $mysqli = get_mysqli();
-            $stmt = $mysqli->prepare("SELECT id FROM users WHERE phone = ? LIMIT 1");
-            $stmt->bind_param('s', $phone);
-            $stmt->execute();
-            $stmt->store_result();
-            $exists = $stmt->num_rows > 0;
-            $stmt->close();
-        } else {
-            $errors[] = 'No database connection available.';
-        }
-
-        if ($exists) {
-            $errors[] = 'Số điện thoại đã được sử dụng.';
-        } else {
-            // Insert user
-            $inserted = false;
-            if (has_pdo()) {
-                $stmt = $pdo->prepare("INSERT INTO users (name, phone, password, address, role, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
-                $inserted = $stmt->execute([$name, $phone, $hashed, $address, $role]);
-            } elseif (has_mysqli()) {
-                $mysqli = get_mysqli();
-                $stmt = $mysqli->prepare("INSERT INTO users (name, phone, password, address, role, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
-                $stmt->bind_param('sssss', $name, $phone, $hashed, $address, $role);
-                $inserted = $stmt->execute();
-                if ($stmt) $stmt->close();
-            }
-
-            if ($inserted) {
-                header('Location: /TechFixPHP/login.php?registered=1');
-                exit;
-            } else {
-                $errors[] = 'Đăng ký thất bại. Vui lòng thử lại.';
-            }
-        }
-    }
-}
-
-// Prepare toast message for client-side
-$toastMessage = '';
-$toastType = 'info';
-if (!empty($errors)) {
-    $toastMessage = implode(' ', $errors);
-    $toastType = 'error';
-}
+// register.php
+// Code PHP xử lý POST đã bị xóa, vì chúng ta sẽ dùng JavaScript fetch
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -102,31 +10,31 @@ if (!empty($errors)) {
     <title>Đăng Ký - TECHFIX</title>
     <link href="/TechFixPHP/assets/css/register.css" rel="stylesheet" />
     <style>
-        /* minimal fallback styling for toast (kept small) */
+        /* CSS cho toast */
         .toast { position: fixed; bottom: 20px; right: 20px; background: #333; color: #fff; padding: 1rem 1.5rem; border-radius: 8px; opacity: 0; transition: opacity 0.3s; z-index: 9999; }
         .toast.show { opacity: 1; }
+        
+        /* CSS cho Camera (Thêm mới) */
+        .video-container {
+            position: relative; width: 100%; padding-top: 75%; /* Tỷ lệ 4:3 */
+            background: #000;
+            border-radius: 8px; overflow: hidden; margin-bottom: 1rem;
+        }
+        video {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            object-fit: cover; transform: scaleX(-1); /* Lật ngược camera selfie */
+        }
+        .btn-camera {
+            background: #6c757d; color: white; margin-top: 0.5rem; width: 100%;
+            padding: 0.75rem; border: none; border-radius: 8px; cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
     <div class="register-page">
         <div class="particles">
-            <script>
-                const particlesContainer = document.querySelector('.particles');
-                for (let i = 0; i < 30; i++) {
-                    const p = document.createElement("div");
-                    p.className = "particle";
-                    const left = Math.floor(Math.random() * 100);
-                    const top = Math.floor(Math.random() * 100);
-                    const delay = (Math.random() * 15).toFixed(2);
-                    p.style.left = left + "%";
-                    p.style.top = top + "%";
-                    p.style.animationDelay = delay + "s";
-                    // Append to container
-                    particlesContainer.appendChild(p);
-                }
-            </script>
-        </div>
+            </div>
         
         <div class="register-card">
             <div class="register-header">
@@ -134,41 +42,52 @@ if (!empty($errors)) {
                 <p>Trải nghiệm dịch vụ tiện ích cùng TECHFIX</p>
             </div>
 
-            <form id="registerForm" name="form_users" class="register-form" method="POST" novalidate>
+            <form id="registerForm" class="register-form" novalidate>
                 
+                <h5>Bước 1: Thông tin tài khoản</h5>
                 <div class="form-group icon-input">
-                    <span class="icon"></span>
-                    <input type="text" id="name" name="Name" placeholder="Tên người dùng" class="form-control" required value="<?= $old['Name'] ?>">
-                    <span class="validation-message" data-valmsg-for="Name"></span>
+                    <input type="text" id="name" name="Name" placeholder="Tên người dùng" class="form-control" required>
                 </div>
 
                 <div class="form-group icon-input">
-                    <span class="icon"></span>
-                    <input type="text" id="phone" name="Phone" placeholder="Số điện thoại" class="form-control" required value="<?= $old['Phone'] ?>">
-                    <span class="validation-message" data-valmsg-for="Phone"></span>
+                    <input type="text" id="phone" name="Phone" placeholder="Số điện thoại" class="form-control" required>
                 </div>
 
                 <div class="form-group icon-input">
-                    <span class="icon"></span>
-                    <input type="password" id="password" name="Password" placeholder="Mật khẩu" class="form-control" required>
-                    <span class="validation-message" data-valmsg-for="Password"></span>
+                    <input type="password" id="password" name="Password" placeholder="Mật khẩu (ít nhất 6 ký tự)" class="form-control" required>
                 </div>
 
                 <div class="form-group icon-input">
-                    <span class="icon"></span>
-                    <textarea id="address" name="Address" placeholder="Địa chỉ" class="form-control" style="max-height: 100px; overflow-y: auto;"><?= $old['Address'] ?></textarea>
-                    <span class="validation-message" data-valmsg-for="Address"></span>
+                    <textarea id="address" name="Address" placeholder="Địa chỉ" class="form-control"></textarea>
                 </div>
 
-                <button type="submit" class="btn-register">Đăng Ký Ngay</button>
+                <hr style="margin: 20px 0;">
+                <h5>Bước 2: Thêm khuôn mặt của bạn</h5>
+                <div id="face-register-view">
+                    <div class="video-container">
+                        <video id="videoFeed" autoplay muted playsinline></video>
+                    </div>
+                    <button type="button" id="btnStartCamera" class="btn-camera" style="display: block !important;">Bật Camera</button>
+                        (Dùng để đăng nhập nhanh hơn)
+                    </small>
+                </div>
+                <button type="submit" class="btn-register" style="margin-top: 20px;">Hoàn tất Đăng Ký</button>
             </form>
         </div>
     </div>
 
     <div id="toast" class="toast"></div>
 
+    <script src="https://unpkg.com/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    
+<script src="/TechFixPHP/assets/js/faceAuth.js"></script>
     <script>
+        const btnStartCamera = document.getElementById('btnStartCamera');
+        const registerForm = document.getElementById('registerForm');
+        const videoFeed = document.getElementById("videoFeed");
         const toast = document.getElementById("toast");
+
+        // Hàm showToast (từ code của bạn)
         function showToast(message, type = "info") {
             toast.textContent = message;
             toast.style.background = type === "error" ? "#d9534f" :
@@ -178,11 +97,73 @@ if (!empty($errors)) {
             setTimeout(() => toast.classList.remove("show"), 4000);
         }
 
-        // Show server-side messages (errors) if any
-        <?php if ($toastMessage): ?>
-            document.addEventListener('DOMContentLoaded', function(){ showToast(<?= json_encode($toastMessage) ?>, <?= json_encode($toastType) ?>); });
-        <?php endif; ?>
-    </script>
+        // Khi nhấn nút "Bật Camera"
+        btnStartCamera.addEventListener("click", async () => {
+            showToast("Đang tải models AI (~5MB)...", "info");
+            await loadModels(); // Tải models từ faceAuth.js
+            showToast("Đang bật camera...", "info");
+            
+            const started = await startVideo("videoFeed"); // Bật video
+            
+            if (started) {
+                showToast("Đã bật camera! Hãy nhìn thẳng.", "success");
+                btnStartCamera.style.display = 'none'; // Ẩn nút đi
+            } else {
+                showToast("Lỗi bật camera! Vui lòng cho phép trình duyệt truy cập.", "error");
+            }
+        });
 
+        // Khi nhấn nút "Hoàn tất Đăng Ký"
+        registerForm.addEventListener("submit", async (e) => {
+            e.preventDefault(); // <-- Ngăn chặn POST truyền thống
+            showToast("Đang xử lý, vui lòng chờ...", "info");
+
+            // 1. Chụp ảnh và lấy đặc trưng khuôn mặt
+            const descriptor = await getFaceDescriptor("videoFeed");
+            if (!descriptor) {
+                showToast("Không nhận diện được khuôn mặt. Vui lòng bật camera và nhìn thẳng.", "error");
+                return;
+            }
+
+            // 2. Lấy thông tin form
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const password = document.getElementById('password').value;
+            const address = document.getElementById('address').value;
+
+            // 3. Gửi tất cả về server (api/register-face.php)
+            try {
+                // (Đường dẫn từ /pages/public_page/register.php)
+                const res = await fetch("../api/register-face.php", {
+                    method: "POST",
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        name: name, 
+                        phone: phone, 
+                        password: password, 
+                        address: address,
+                        descriptor: Array.from(descriptor) // Chuyển thành mảng thường
+                    })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    showToast("Đăng ký thành công! Đang chuyển đến trang đăng nhập.", "success");
+                    stopVideo(); // Tắt camera
+                    setTimeout(() => {
+                        window.location.href = "login.php"; // Chuyển về trang login
+                    }, 2000);
+                } else {
+                    showToast(data.message, "error");
+                }
+            } catch (err) {
+                showToast("Lỗi máy chủ: " + err.message, "error");
+            }
+        });
+
+        // Tắt camera khi rời trang
+        window.addEventListener("beforeunload", () => stopVideo());
+    </script>
 </body>
 </html>
