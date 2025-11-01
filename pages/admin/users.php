@@ -1,6 +1,23 @@
 <?php
+
 include '../../config/db.php';
 include 'template/sidebar.php';
+
+session_start();
+
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+    header('Location: /TechFixPHP/pages/public_page/login.php');
+    exit;
+}
+include __DIR__ . '/template/sidebar.php';
+
+
+// Simple admin auth check (adjust to your auth system)
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+  header('Location: /TechFixPHP/pages/public_page/login.php');
+  exit;
+}
+
 
 $msg = '';
 $msgType = ''; 
@@ -58,7 +75,7 @@ if (isset($_GET['edit'])) {
 }
 $result = mysqli_query($conn, "SELECT * FROM users ORDER BY id DESC");
 ?>
-
+<link href="/TechFixPHP/assets/css/users.css" rel="stylesheet">
 <main class="p-4">
   <h1 class="mb-3">Quản lý người dùng</h1>
 

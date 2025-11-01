@@ -20,6 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
     }
 
     // Lưu session
+    // Lưu session (THAY đoạn cũ)
+    $_SESSION['user'] = $user;
     $_SESSION['phone'] = $user['phone'];
     $_SESSION['name'] = $user['name'];
     $_SESSION['role'] = $user['role'];
@@ -190,8 +192,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
 
                 // Redirect theo role
                 setTimeout(() => {
-                    window.location.href = user.role === "admin" ? "../pages/admin/dashboard.php" : "../index.php";
-                }, 1000);
+    // Chuyển hướng theo vai trò
+    if (user.role === "admin" || user.role === "technical") {
+        window.location.href = "/TechFixPHP/index.php"; // Trang quản trị
+    } else if (user.role === "customer") {
+        window.location.href = "/TechFixPHP/index.php"; // Trang chính khách hàng
+    } else {
+        window.location.href = "/TechFixPHP/pages/public_page/login.php"; // fallback nếu role không xác định
+    }
+}, 1000);
+
 
             } catch (err) {
                 showToast(err.message, "error");
@@ -236,7 +246,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
                     showToast("Xác thực thành công!", "success");
                     localStorage.setItem("currentUser", JSON.stringify(user));
                     setTimeout(() => {
-                        window.location.href = user.role === "admin" ? "../pages/admin/dashboard.php" : "../index.php";
+                        window.location.href = user.role === "admin" ? "../admin/dashboard.php" : "../index.php";
                     }, 1000);
                 } else {
                     showToast("Không nhận dạng được khuôn mặt.", "error");

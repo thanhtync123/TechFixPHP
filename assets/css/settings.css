@@ -1,0 +1,201 @@
+/* -------- Background toàn trang -------- */
+.profile-page {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    font-family: "Segoe UI", sans-serif;
+    color: #fff;
+    /* Nếu có ảnh HD (1920px) thì dùng full màn hình */
+    background: url("/TechFixPHP/assets/image/do.jpg") no-repeat center center fixed;
+    background-size: cover;
+    background-color: #0b1c33;
+    position: relative;
+}
+
+    .profile-page::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45); /* overlay tối để card nổi */
+    }
+
+.profile-container {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 2rem;
+    width: 100%;
+    max-width: 900px;
+    /* Glass effect */
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 35px rgba(0, 0, 0, 0.5);
+    padding: 2rem;
+    animation: fadeInUp 1s ease;
+}
+
+/* -------- Avatar -------- */
+.avatar-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: center;
+}
+
+.avatar-img, .avatar-circle {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.8rem;
+    font-weight: bold;
+}
+
+.change-avatar-btn {
+    position: absolute;
+    bottom: 5px;
+    right: 20%;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.3);
+    transition: background 0.3s;
+}
+
+    .change-avatar-btn:hover {
+        background: rgba(0,0,0,0.85);
+    }
+
+/* -------- Info -------- */
+.user-name {
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-top: 0.8rem;
+}
+
+.role-tag {
+    text-align: center;
+    font-size: 0.9rem;
+    margin-top: 0.3rem;
+    background: rgba(255,255,255,0.2);
+    padding: 0.2rem 0.8rem;
+    border-radius: 12px;
+}
+
+.phone-tag {
+    text-align: center;
+    font-size: 0.9rem;
+    margin-top: 0.2rem;
+    opacity: 0.9;
+}
+
+/* -------- Form -------- */
+.profile-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.form-title {
+    font-size: 1.6rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+.icon-input .icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1rem;
+    opacity: 0.8;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.9rem 1rem 0.9rem 2.6rem;
+    border-radius: 10px;
+    border: none;
+    background: rgba(0,0,0,0.5);
+    color: #fff;
+    font-size: 1rem;
+}
+
+    .form-control::placeholder {
+        color: rgba(255,255,255,0.7);
+    }
+
+    .form-control:focus {
+        outline: none;
+        background: rgba(0,0,0,0.65);
+        box-shadow: 0 0 8px rgba(255,255,255,0.4);
+    }
+
+/* -------- Button -------- */
+.btn-save {
+    margin-top: 10px;
+    padding: 0.9rem;
+    width: 100%;
+    border-radius: 10px;
+    border: none;
+    font-weight: bold;
+    font-size: 1.05rem;
+    color: #fff;
+    cursor: pointer;
+    background: rgba(0,0,0,0.6);
+    transition: background 0.3s, transform 0.2s;
+}
+
+    .btn-save:hover {
+        background: rgba(0,0,0,0.8);
+        transform: translateY(-2px);
+    }
+
+/* -------- Animation -------- */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* -------- Responsive -------- */
+@media (max-width: 768px) {
+    .profile-container {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+}
+.form-control:disabled {
+    background: rgba(255, 255, 255, 0.1) !important; /* nền trong suốt nhẹ */
+    color: #fff !important; /* chữ trắng rõ ràng */
+    opacity: 1 !important; /* tránh bị mờ */
+    cursor: not-allowed;
+}

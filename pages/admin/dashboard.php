@@ -3,6 +3,12 @@
 // GitHub Copilot
 
 session_start();
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+    header('Location: /TechFixPHP/pages/public_page/login.php');
+    exit;
+}
+include __DIR__ . '/template/sidebar.php';
+
 
 // Simple admin auth check (adjust to your auth system)
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {

@@ -1,7 +1,14 @@
 <?php
 session_start();
-$isAdmin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
+
+// Kiểm tra đăng nhập
 $isLoggedIn = isset($_SESSION['role']);
+$role = $_SESSION['role'] ?? null;
+
+// === THAY ĐỔI 1: Xóa dòng $isAdminOrTech ở đây ===
+// (Không cần biến $isAdminOrTech nữa)
+
+$name = $_SESSION['name'] ?? 'User';
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -13,11 +20,11 @@ $isLoggedIn = isset($_SESSION['role']);
 </head>
 <body>
 
-    <!-- Navbar -->
     <nav class="navbar">
         <div class="container">
             <div class="flex items-center">
-                <img src="/TechFixPHP/assets/image/hometech.jpg" alt="Logo" style="width:40px; height:40px; object-fit:contain; margin-right:8px;">
+                <img src="/TechFixPHP/assets/image/hometech.jpg" alt="Logo" 
+                     style="width:40px; height:40px; object-fit:contain; margin-right:8px;">
                 <h1 class="logo" style="margin:0; display:inline-block;">TECHFIX</h1>
             </div>
 
@@ -26,25 +33,30 @@ $isLoggedIn = isset($_SESSION['role']);
                 <a href="/TechFixPHP/Customer/Service.php">Dịch Vụ</a>
                 <a href="#about">Về Chúng Tôi</a>
                 <a href="#contact">Liên Hệ</a>
-                
-                <?php if($isAdmin): ?>
-                    <a href="/TechFixPHP/pages/admin/dashboard.php">Trang Quản Trị</a>
+                <a href="/TechFixPHP/Customer/my_booking.php">Lịch Đặt</a>
+                <?php if ($isLoggedIn): ?>
+                    <a href="/TechFixPHP/pages/public_page/settings.php">Cài Đặt</a>
                 <?php endif; ?>
 
-                <?php if(!$isLoggedIn): ?>
+                <?php if ($role === 'admin'): ?>
+                    <a href="/TechFixPHP/pages/admin/dashboard.php">Trang Quản Trị</a>
+                <?php elseif ($role === 'technical'): ?>
+                    <a href="/TechFixPHP/pages/admin/technicianschedule.php">Lịch Làm Việc</a>
+                <?php endif; ?>
+                <?php if (!$isLoggedIn): ?>
                     <a href="/TechFixPHP/pages/public_page/register.php">Đăng Ký</a>
                     <a href="/TechFixPHP/pages/public_page/login.php">Đăng Nhập</a>
+
                 <?php else: ?>
                     <div class="user-menu">
-                        <span>Xin chào, <?php echo htmlspecialchars($_SESSION['name'] ?? 'User'); ?></span>
-                        <a href="/TechFixPHP/logout.php">Đăng Xuất</a>
+                        <span>Xin chào, <?= htmlspecialchars($name) ?></span>
+                        <a href="/TechFixPHP/pages/public_page/login.php" class="logout-btn">Đăng Xuất</a>
                     </div>
                 <?php endif; ?>
             </div>
         </div>
     </nav>
 
-    <!-- Hero Section -->
     <section id="home" class="hero">
         <video autoplay muted loop playsinline class="hero-video">
             <source src="/TechFixPHP/assets/image/home.mp4" type="video/mp4">
@@ -60,7 +72,6 @@ $isLoggedIn = isset($_SESSION['role']);
         </div>
     </section>
 
-    <!-- Services Section -->
     <section id="services" class="section">
         <h2 class="section-title">Các Dịch Vụ TECHFIX</h2>
         <div class="slider-container">
@@ -95,7 +106,6 @@ $isLoggedIn = isset($_SESSION['role']);
         </div>
     </section>
 
-    <!-- About Section -->
     <section id="about" class="section light">
         <h2 class="section-title">Giới Thiệu TECHFIX</h2>
         <div class="about-container">
@@ -108,7 +118,6 @@ $isLoggedIn = isset($_SESSION['role']);
         </div>
     </section>
 
-    <!-- Contact Section -->
     <section id="contact" class="section">
         <h2 class="section-title">Liên Hệ</h2>
         <form class="contact-form">
@@ -122,7 +131,6 @@ $isLoggedIn = isset($_SESSION['role']);
         </div>
     </section>
 
-    <!-- Footer -->
     <footer class="footer">
         <div>
             <h3>TECHFIX</h3>
@@ -145,8 +153,6 @@ $isLoggedIn = isset($_SESSION['role']);
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            console.log("LandingPage JS loaded ✅");
-
             const track = document.getElementById("slideTrack");
             const slides = track ? track.children : [];
             const prevBtn = document.getElementById("prevBtn");
@@ -172,7 +178,6 @@ $isLoggedIn = isset($_SESSION['role']);
 
             function showSlide(i) {
                 if (!track || slides.length === 0) return;
-
                 if (i < 0) index = slides.length - 1;
                 else if (i >= slides.length) index = 0;
                 else index = i;
@@ -187,29 +192,30 @@ $isLoggedIn = isset($_SESSION['role']);
             }
 
             if (slides.length > 0) {
-                setInterval(() => {
-                    showSlide(index + 1);
-                }, 5000);
+                setInterval(() => showSlide(index + 1), 5000);
             }
 
             showSlide(0);
-
-            const aboutSection = document.querySelector(".about-container");
-
-            function checkScroll() {
-                if (!aboutSection) return;
-                const rect = aboutSection.getBoundingClientRect();
-                if (rect.top < window.innerHeight - 100) {
-                    aboutSection.classList.add("show");
-                    window.removeEventListener("scroll", checkScroll);
-                }
-            }
-
-            window.addEventListener("scroll", checkScroll);
-            checkScroll();
-
-            console.log("LandingPage init finished 🚀");
         });
     </script>
+    <script>
+document.addEventListener("DOMContentLoaded", () => {
+    const aboutSection = document.querySelector(".about-container");
+
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                aboutSection.classList.add("show");
+                observer.unobserve(entry.target); // chỉ chạy 1 lần
+            }
+        });
+    }, { threshold: 0.3 }); // khi 30% phần tử xuất hiện
+
+    if (aboutSection) {
+        observer.observe(aboutSection);
+    }
+});
+</script>
+
 </body>
 </html>

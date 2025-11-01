@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($stmt->execute()) {
         echo "<script>
                 alert('Đặt lịch thành công! Kỹ thuật viên sẽ liên hệ với bạn sớm.');
-                window.location.href = '../index.html';
+                window.location.href = '../index.php';
               </script>";
     } else {
         echo "<script>
@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <h1 class="logo" style="margin:8px; display:inline-block; line-height:60px;">TECHFIX</h1>
             </div>
             <div class="nav-links flex items-center space-x-4">
-                <a href="../index.html">Trang Chủ |</a>
+                <a href="../index.php">Trang Chủ |</a>
                 <a href="Service.php">Dịch Vụ |</a>
                 <a href="about.html">Về Chúng Tôi |</a>
                 <a href="contact.html">Liên Hệ |</a>
@@ -96,21 +96,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="card-body">
                 <form id="bookingForm" method="POST">
                     <div class="mb-2">
-                        <label>Mã khách hàng</label>
-                        <input type="number" id="idCustomer" name="IdCustomer" class="form-control" value="123" readonly />
-                    </div>
-                    <div class="mb-2">
-                        <label>Tên khách hàng</label>
-                        <input type="text" id="customerName" name="CustomerName" class="form-control" value="Tên Khách Hàng Mẫu" readonly />
-                    </div>
-                    <div class="mb-2">
-                        <label>Số điện thoại</label>
-                        <input type="text" id="phone" name="Phone" class="form-control" value="0901234567" readonly />
-                    </div>
-                    <div class="mb-2">
-                        <label>Địa chỉ</label>
-                        <input type="text" id="address" name="Address" class="form-control" value="123 Đường ABC, Phường XYZ, Quận 1" readonly />
-                    </div>
+    <label>Mã khách hàng</label>
+    <input type="number" id="idCustomer" name="IdCustomer" class="form-control" placeholder="Nhập mã khách hàng" required />
+</div>
+
+<div class="mb-2">
+    <label>Tên khách hàng</label>
+    <input type="text" id="customerName" name="CustomerName" class="form-control" placeholder="Nhập tên khách hàng" required />
+</div>
+
+<div class="mb-2">
+    <label>Số điện thoại</label>
+    <input type="text" id="phone" name="Phone" class="form-control" placeholder="Nhập số điện thoại" required />
+</div>
+
+<div class="mb-2">
+    <label>Địa chỉ</label>
+    <input type="text" id="address" name="Address" class="form-control" placeholder="Nhập địa chỉ" required />
+</div>
+
                     <div class="mb-2">
                         <label>Tên dịch vụ</label>
                         <select id="serviceId" name="ServiceId" class="form-control" required>

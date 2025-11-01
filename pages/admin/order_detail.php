@@ -1,5 +1,18 @@
 <?php
 include '../../config/db.php';
+session_start();
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+    header('Location: /TechFixPHP/pages/public_page/login.php');
+    exit;
+}
+include __DIR__ . '/template/sidebar.php';
+
+
+// Simple admin auth check (adjust to your auth system)
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+  header('Location: /TechFixPHP/pages/public_page/login.php');
+  exit;
+}
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode(file_get_contents('php://input'), true);
     $id = intval($data['data']['id']);
@@ -105,6 +118,8 @@ if (isset($_GET['id'])) {
 $result = mysqli_query($conn, "select * from users where role = 'customer' ");
 ?>
 <?php include 'template/sidebar.php'; ?>
+   <link href="/TechFixPHP/assets/css/order_detail.css" rel="stylesheet">
+
 <main>
     <h1 class="mb-3">
         <?php echo isset($_GET['id']) ? 'Cập nhật đơn hàng' : 'Tạo mới đơn hàng'; ?>

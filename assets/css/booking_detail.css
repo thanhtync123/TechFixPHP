@@ -1,0 +1,145 @@
+
+    /* ----- Bắt đầu CSS nâng cấp ----- */
+    
+    /* Import font (Nếu bạn chưa import ở file customer.css) */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+    body { 
+        background-color: #f5f6fa; 
+        font-family: 'Poppins', sans-serif;
+        color: #333;
+        line-height: 1.6;
+    }
+
+    .container {
+        max-width: 700px; 
+        margin: 40px auto; 
+        background: #ffffff;
+        padding: 30px 40px; 
+        border-radius: 12px; 
+        box-shadow: 0 4px 25px rgba(0,0,0,0.07);
+        border-top: 4px solid #0099ff; /* Thêm điểm nhấn thương hiệu */
+    }
+
+    h2 { 
+        text-align: center; 
+        color: #1a2533; 
+        margin-bottom: 25px;
+        font-weight: 700;
+        position: relative;
+        padding-bottom: 10px;
+    }
+
+    /* Thêm 1 đường gạch chân nhỏ dưới tiêu đề */
+    h2::after {
+        content: '';
+        display: block;
+        width: 50px;
+        height: 3px;
+        background: #0099ff;
+        margin: 8px auto 0;
+    }
+
+    .detail-row { 
+        margin: 0;
+        padding: 18px 0; /* Tăng khoảng cách */
+        display: flex; 
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #eef0f3; /* Phân cách rõ ràng */
+    }
+
+    /* Xóa đường viền của hàng cuối cùng */
+    .detail-row:last-of-type {
+        border-bottom: none;
+        padding-bottom: 10px;
+    }
+
+    .detail-row strong { 
+        color: #555; /* Làm nhạt màu nhãn */
+        font-weight: 600;
+        font-size: 0.95em;
+    }
+
+    .detail-row span {
+        color: #111; /* Làm đậm màu giá trị */
+        font-weight: 500;
+        text-align: right;
+    }
+
+    /*
+     * CSS cho Trạng thái (Status Badges)
+     * Dùng màu nền nhạt + màu chữ đậm để dễ đọc hơn
+    */
+    .status {
+        padding: 5px 12px; 
+        border-radius: 15px; /* Bo tròn hơn */
+        font-weight: 600;
+        font-size: 0.85em;
+        text-transform: uppercase; /* Viết hoa */
+        letter-spacing: 0.5px;
+        border: 1px solid transparent;
+    }
+
+    .pending { 
+        background-color: #fff1c2; 
+        color: #7a5f00;
+        border-color: #ffe680;
+    }
+    .confirmed { 
+        background-color: #d4edda; 
+        color: #155724;
+        border-color: #c3e6cb;
+    }
+    .completed { 
+        background-color: #d1ecf1; 
+        color: #0c5460;
+        border-color: #bee5eb;
+    }
+    .cancelled { 
+        background-color: #f8d7da; 
+        color: #721c24;
+        border-color: #f5c6cb;
+    }
+
+    /* CSS cho Nút bấm (Buttons) */
+    .button-container {
+        text-align: center;
+        margin-top: 30px;
+        display: flex; /* Sử dụng flexbox */
+        justify-content: center; /* Căn giữa các nút */
+        gap: 15px; /* Khoảng cách giữa các nút */
+    }
+
+    .btn {
+        display: inline-block; 
+        padding: 10px 25px; 
+        margin-top: 0; /* Xóa margin-top cũ */
+        border-radius: 8px; 
+        border: none; 
+        cursor: pointer; 
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95em;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .btn-back { 
+        background: #0099ff; 
+        color: white; 
+    }
+
+    .btn-cancel { 
+        background: #f44336; 
+        color: white; 
+        margin-left: 0; /* Xóa margin-left cũ */
+    }
+
+    /* Hiệu ứng Hover cho nút */
+    .btn:hover {
+        opacity: 1;
+        transform: translateY(-2px); /* Nâng nút lên một chút */
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+    /* ----- Kết thúc CSS nâng cấp ----- */

@@ -1,7 +1,19 @@
 <?php
 include '../../config/db.php';
 include 'template/sidebar.php';
+session_start();
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+    header('Location: /TechFixPHP/pages/public_page/login.php');
+    exit;
+}
+include __DIR__ . '/template/sidebar.php';
 
+
+// Simple admin auth check (adjust to your auth system)
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+  header('Location: /TechFixPHP/pages/public_page/login.php');
+  exit;
+}
 if (isset($_POST['save'])) {
     $id = intval($_POST['id']);
     $name = $_POST['name'];
@@ -43,6 +55,7 @@ if (isset($_GET['edit'])) {
 $query = "SELECT * FROM services order by id desc";
 $result = mysqli_query($conn, $query);
 ?>
+<link href="/TechFixPHP/assets/css/service_ad.css" rel="stylesheet">
 <main class="p-4">
     <h1 class="mb-3">Quản lý dịch vụ</h1>
     <form method="post">
@@ -65,10 +78,10 @@ $result = mysqli_query($conn, $query);
         <thead>
             <tr>
                 <th>id</th>
-                <th>name</th>
-                <th>description</th>
-                <th>price</th>
-                <th>unit</th>
+                <th>Tên Dịch Vụ</th>
+                <th>Mô Tả</th>
+                <th>Giá</th>
+                <th>Đơn Vị</th>
                 <th>Thao tác</th>
             </tr>
         </thead>

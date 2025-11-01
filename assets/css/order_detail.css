@@ -1,0 +1,359 @@
+/* Reset & Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+main {
+    padding: 30px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+main h1 {
+    color: #2c3e50;
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 25px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Container Layout */
+.container-flex {
+    display: flex;
+    align-items: flex-start;
+    gap: 30px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+/* Table Styles */
+table {
+    width: 100%;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    margin-bottom: 25px;
+    border-collapse: collapse;
+}
+
+table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+table thead th {
+    padding: 16px 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+table tbody tr {
+    border-bottom: 1px solid #e0e0e0;
+    transition: all 0.3s ease;
+}
+
+table tbody tr:hover {
+    background: #f8f9fa;
+    transform: scale(1.01);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+table tbody td {
+    padding: 14px 12px;
+    font-size: 14px;
+    color: #333;
+}
+
+table tbody td:last-child {
+    text-align: center;
+}
+
+table tbody tr:last-child {
+    border-bottom: none;
+}
+
+/* Equipment & Customer Tables */
+.tableE_C {
+    min-width: 100%;
+    margin-top: 20px;
+}
+
+.tableE_C tbody tr td {
+    vertical-align: middle;
+}
+
+.tableE_C input[type="number"] {
+    width: 60px;
+    padding: 6px 8px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.tableE_C input[type="number"]:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Images in Tables */
+table img {
+    border-radius: 8px;
+    object-fit: cover;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+table img:hover {
+    transform: scale(1.1);
+}
+
+/* Info Customer Section */
+.infoCustomer {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    min-width: 320px;
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    position: sticky;
+    top: 20px;
+}
+
+.infoCustomer > div {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-weight: 500;
+    color: #2c3e50;
+    font-size: 14px;
+}
+
+.infoCustomer input,
+.infoCustomer select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+}
+
+.infoCustomer input:focus,
+.infoCustomer select:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.infoCustomer input:disabled,
+.infoCustomer select:disabled {
+    background: #e9ecef;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Buttons */
+button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.infoCustomer button {
+    width: 100%;
+    margin-top: 10px;
+}
+
+button[type="button"] {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+button[type="button"]:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+button[type="button"]:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+button[type="button"]:disabled {
+    background: #95a5a6;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Add/Remove Buttons in Tables */
+table td button,
+table td > button[type="button"] {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+    padding: 8px 16px;
+    font-size: 18px;
+    font-weight: bold;
+    min-width: 40px;
+    box-shadow: 0 2px 8px rgba(17, 153, 142, 0.3);
+}
+
+table td button:hover {
+    background: linear-gradient(135deg, #0d7d70 0%, #2dd468 100%);
+    transform: scale(1.05);
+}
+
+.tableE_C td button {
+    background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+    box-shadow: 0 2px 8px rgba(235, 51, 73, 0.3);
+}
+
+.tableE_C td button:hover {
+    background: linear-gradient(135deg, #c42738 0%, #d14a3a 100%);
+}
+
+/* Print Button Styling */
+button[onclick*="invoice_order"] {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    box-shadow: 0 4px 12px rgba(245, 87, 108, 0.4);
+}
+
+button[onclick*="invoice_order"]:hover:not(:disabled) {
+    background: linear-gradient(135deg, #e083eb 0%, #e5475c 100%);
+}
+
+/* Price Display Section */
+main > div:last-child {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    margin-top: 20px;
+}
+
+main > div:last-child p {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    padding: 12px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+main > div:last-child p:last-of-type {
+    font-size: 20px;
+    color: #e74c3c;
+    border-bottom: none;
+    margin-top: 10px;
+    padding-top: 15px;
+    border-top: 3px solid #667eea;
+}
+
+main > div:last-child p span {
+    color: #27ae60;
+    font-weight: 700;
+}
+
+main > div:last-child p:last-of-type span {
+    color: #e74c3c;
+}
+
+/* Text Center Utility */
+.text-center {
+    text-align: center;
+    color: #95a5a6;
+    font-style: italic;
+    padding: 30px !important;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .container-flex {
+        flex-direction: column;
+    }
+    
+    .infoCustomer {
+        width: 100%;
+        position: static;
+    }
+}
+
+@media (max-width: 768px) {
+    main {
+        padding: 15px;
+    }
+    
+    main h1 {
+        font-size: 22px;
+    }
+    
+    table {
+        font-size: 12px;
+    }
+    
+    table thead th,
+    table tbody td {
+        padding: 10px 8px;
+    }
+    
+    .infoCustomer {
+        padding: 20px;
+    }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #5568d3 0%, #65408d 100%);
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+table, .infoCustomer {
+    animation: fadeIn 0.5s ease-out;
+}
