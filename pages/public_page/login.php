@@ -196,15 +196,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
 
                 // Redirect theo role
                 setTimeout(() => {
-                    // Chuyển hướng theo vai trò (Code của bạn đã đúng)
-                    if (user.role === "admin" || user.role === "technical") {
-                        window.location.href = "/TechFixPHP/index.php"; // Trang quản trị
-                    } else if (user.role === "customer") {
-                        window.location.href = "/TechFixPHP/index.php"; // Trang chính khách hàng
-                    } else {
-                        window.location.href = "/TechFixPHP/pages/public_page/login.php"; // fallback
-                    }
-                }, 1000);
+    if (user.role === "admin") {
+        window.location.href = "/TechFixPHP/pages/admin/dashboard.php"; // <-- Admin vào Dashboard
+    } else if (user.role === "technical") {
+        window.location.href = "/TechFixPHP/pages/technical/tech_schedule.php"; // <-- Tech vào Lịch làm việc
+    } else if (user.role === "customer") {
+        window.location.href = "/TechFixPHP/index.php"; // <-- Khách về trang chủ
+    } else {
+        window.location.href = "/TechFixPHP/pages/public_page/login.php"; 
+    }
+}, 1000);
 
             } catch (err) {
                 showToast(err.message, "error");
@@ -262,15 +263,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
                     
                     // === BẮT ĐẦU SỬA LỖI 3: LỖI CHUYỂN HƯỚNG ===
                     setTimeout(() => {
-                        // Copy y hệt khối setTimeout ở trên (dòng 220)
-                        if (user.role === "admin" || user.role === "technical") {
-                            window.location.href = "/TechFixPHP/index.php"; // Trang quản trị
-                        } else if (user.role === "customer") {
-                            window.location.href = "/TechFixPHP/index.php"; // Trang chính khách hàng
-                        } else {
-                            window.location.href = "/TechFixPHP/pages/public_page/login.php"; 
-                        }
-                    }, 1000);
+    if (user.role === "admin") {
+        window.location.href = "/TechFixPHP/pages/admin/dashboard.php"; // <-- Admin vào Dashboard
+    } else if (user.role === "technical") {
+        window.location.href = "/TechFixPHP/pages/technical/tech_schedule.php"; // <-- Tech vào Lịch làm việc
+    } else if (user.role === "customer") {
+        window.location.href = "/TechFixPHP/index.php"; // <-- Khách về trang chủ
+    } else {
+        window.location.href = "/TechFixPHP/pages/public_page/login.php"; 
+    }
+}, 1000);
                     // === HẾT SỬA LỖI 3 ===
                     
                 } else {

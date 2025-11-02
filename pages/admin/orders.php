@@ -8,7 +8,6 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 }
 
 include '../../config/db.php';
-include __DIR__ . '/template/sidebar.php';
 
 // --- Xử lý cập nhật trạng thái đơn hàng (Đã bảo mật) ---
 if (isset($_GET['update']) && isset($_GET['id']) && isset($_GET['status'])) {
@@ -39,6 +38,7 @@ if (isset($_GET['delete'])) {
     header("Location: orders.php");
     exit;
 }
+include __DIR__ . '/template/sidebar.php';
 
 // --- Lọc theo trạng thái (Đã bảo mật) ---
 $params = [];
@@ -167,7 +167,7 @@ $result = $stmt->get_result();
     <div class="main-content">
         <header class="header">
             <div class="header-title">
-                <h2>📦 Quản lý đơn hàng (Bookings)</h2>
+                <h2>📦 Quản lý đơn hàng </h2>
                 <p>Theo dõi và xử lý các đơn đặt dịch vụ</p>
             </div>
             <div class="header-actions">
