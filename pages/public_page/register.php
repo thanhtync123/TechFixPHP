@@ -56,7 +56,9 @@
                 <div class="form-group icon-input">
                     <input type="password" id="password" name="Password" placeholder="Mật khẩu (ít nhất 6 ký tự)" class="form-control" required>
                 </div>
-
+<div class="form-group icon-input">
+    <input type="email" id="email" name="Email" placeholder="Email" class="form-control" required>
+</div>
                 <div class="form-group icon-input">
                     <textarea id="address" name="Address" placeholder="Địa chỉ" class="form-control"></textarea>
                 </div>
@@ -125,27 +127,27 @@
                 return;
             }
 
-            // 2. Lấy thông tin form
-            const name = document.getElementById('name').value;
-            const phone = document.getElementById('phone').value;
-            const password = document.getElementById('password').value;
-            const address = document.getElementById('address').value;
+           // 2. Lấy thông tin form
+    const name = document.getElementById('name').value;
+    const phone = document.getElementById('phone').value;
+    const email = document.getElementById('email').value; // <-- THÊM DÒNG NÀY
+    const password = document.getElementById('password').value;
+    const address = document.getElementById('address').value;
 
-            // 3. Gửi tất cả về server (api/register-face.php)
-            try {
-                // (Đường dẫn từ /pages/public_page/register.php)
-                const res = await fetch("../api/register-face.php", {
-                    method: "POST",
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        name: name, 
-                        phone: phone, 
-                        password: password, 
-                        address: address,
-                        descriptor: Array.from(descriptor) // Chuyển thành mảng thường
-                    })
-                });
-
+    // 3. Gửi tất cả về server (api/register-face.php)
+    try {
+        const res = await fetch("../api/register-face.php", {
+            method: "POST",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                name: name, 
+                phone: phone, 
+                email: email, // <-- THÊM DÒNG NÀY
+                password: password, 
+                address: address,
+                descriptor: Array.from(descriptor)
+            })
+        });
                 const data = await res.json();
 
                 if (data.success) {

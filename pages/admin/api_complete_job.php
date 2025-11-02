@@ -2,32 +2,55 @@
 session_start();
 include '../../config/db.php';
 
-// (Code kiểm tra Technical của bạn ở đây...)
+if (!isset($_SESSION['user']) || $_SESSION['role'] !== 'technical') {
+    die("Bạn không có quyền.");
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $booking_id = $_POST['booking_id'] ?? 0;
     $tech_id = $_SESSION['user']['id'];
 
     if ($booking_id && $tech_id) {
-        // Cập nhật booking (Code cũ của bạn)
+        
         $stmt = $conn->prepare("UPDATE bookings SET status = 'completed' WHERE id = ? AND technician_id = ?");
         $stmt->bind_param("ii", $booking_id, $tech_id);
         $stmt->execute();
         $stmt->close();
 
-        // === 🔔 THÊM CODE MỚI TẠI ĐÂY ===
-        // 1. Lấy customer_id từ booking
-        $result = $conn->query("SELECT customer_id FROM bookings WHERE id = $booking_id");
-        $customer_id = $result->fetch_assoc()['customer_id'];
+        // 2. Lấy thông tin khách hàng (ĐÃ SỬA: LẤY EMAIL THẬT)
+        $result = $conn->query("
+            SELECT b.customer_id, u.email, u.name 
+            FROM bookings b
+            JOIN users u ON b.customer_id = u.id
+            WHERE b.id = $booking_id
+        ");
         
-        // 2. Tạo thông báo
-     $message = "Đơn hàng #${booking_id} đã hoàn thành. Cảm ơn bạn!";
-$stmt_notify = $conn->prepare("INSERT INTO notifications (customer_id, message) VALUES (?, ?)"); // <- Xóa booking_id
-$stmt_notify->bind_param("is", $customer_id, $message); // <- Xóa 'i' và $booking_id
-$stmt_notify->execute();
-        // === HẾT CODE MỚI ===
+        if ($result && $result->num_rows > 0) {
+            $customer = $result->fetch_assoc();
+            $customer_id = $customer['customer_id'];
+            $customer_email = $customer['email']; // <-- Lấy email thật
+            $customer_name = $customer['name'];
+
+            if ($customer_id && $customer_id > 0 && !empty($customer_email)) 
+            {
+                $message_chuong = "Đơn hàng #${booking_id} đã hoàn thành. Cảm ơn bạn!";
+                $message_mail = "Chào bạn {$customer_name},\n\nĐơn hàng #${booking_id} đã hoàn thành.\nCảm ơn bạn đã sử dụng dịch vụ của TECHFIX!";
+                $subject = "TechFix: Đơn hàng #${booking_id} đã hoàn thành";
+                $headers = 'From: support@techfix.com';
+
+                try {
+                    $stmt_notify = $conn->prepare("INSERT INTO notifications (customer_id, message) VALUES (?, ?)");
+                    $stmt_notify->bind_param("is", $customer_id, $message_chuong);
+                    $stmt_notify->execute();
+
+                    // Gửi Email (Dùng email thật)
+                    @mail($customer_email, $subject, $message_mail, $headers);
+
+                } catch (Exception $e) { /* Bỏ qua lỗi */ }
+            }
+        }
     }
     
-    header("Location: tech_schedule.php"); // (Sửa lại tên file nếu cần)
+    header("Location: tech_schedule.php");
 }
 ?>

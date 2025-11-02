@@ -3,39 +3,37 @@
 session_start();
 include "../../config/db.php"; // Đường dẫn đúng tới config/db.php
 
-// === BẮT ĐẦU SỬA LỖI 1: LỖI BẢO MẬT VÀ PASSWORD ===
-
 // Xử lý đăng nhập bằng tài khoản/mật khẩu (khi gọi từ JS fetch)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
     $data = json_decode(file_get_contents('php://input'), true);
-    $phone = $data['phone'] ?? '';
-    $password = $data['password'] ?? '';
+    
+    // 1. (ĐÃ SỬA VỀ KÉM AN TOÀN) Lấy thông tin
+    // Cảnh báo: Code này có lỗ hổng SQL Injection
+    $phone = mysqli_real_escape_string($conn, $data['phone'] ?? '');
+    $password = mysqli_real_escape_string($conn, $data['password'] ?? ''); 
 
-    // 1. Dùng Prepared Statements để chống SQL Injection
-    $stmt = $conn->prepare("SELECT * FROM users WHERE phone = ?");
-    $stmt->bind_param("s", $phone);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $user = $result->fetch_assoc();
+    // 2. (ĐÃ SỬA VỀ KÉM AN TOÀN) So sánh chữ trực tiếp
+    $query = "SELECT * FROM users WHERE phone = '$phone' AND password = '$password'";
+    $result = mysqli_query($conn, $query);
+    $user = mysqli_fetch_assoc($result);
 
-    // 2. Dùng password_verify để so sánh mật khẩu đã băm
-    if (!$user || !password_verify($password, $user['password'])) {
+    if (!$user) {
         // Nếu không có user hoặc mật khẩu sai
         http_response_code(401);
         echo json_encode(['error' => 'Sai tài khoản hoặc mật khẩu']);
         exit;
     }
 
-    // === HẾT SỬA LỖI 1 ===
+    // === HẾT SỬA LỖI ===
 
-    // Lưu session (Code của bạn đã đúng)
+    // Lưu session
     $_SESSION['user'] = $user;
     $_SESSION['phone'] = $user['phone'];
     $_SESSION['name'] = $user['name'];
     $_SESSION['role'] = $user['role'];
-    $_SESSION['user_id'] = $user['id']; // Thêm key này cho nhất quán
+    $_SESSION['user_id'] = $user['id']; 
 
-    // Trả về JSON cho frontend (Code của bạn đã đúng)
+    // Trả về JSON cho frontend
     echo json_encode([
         'id' => $user['id'],
         'name' => $user['name'],
