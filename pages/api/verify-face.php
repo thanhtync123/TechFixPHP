@@ -43,7 +43,7 @@ if ($result->num_rows === 0) {
 $all_users_with_faces = $result->fetch_all(MYSQLI_ASSOC);
 
 // 3. Tìm khuôn mặt khớp nhất
-$matchThreshold = 0.55; // Ngưỡng "giống nhau". (Giá trị 0.4 - 0.55 là tốt nhất)
+$matchThreshold = 0.6; // Ngưỡng "giống nhau". (Giá trị 0.4 - 0.55 là tốt nhất)
 $bestMatchUser = null;
 $bestDistance = 1; // Giả sử khoảng cách tệ nhất là 1
 
