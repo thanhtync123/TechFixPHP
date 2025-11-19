@@ -1,6 +1,5 @@
 <?php
-// register.php
-// Code PHP xử lý POST đã bị xóa, vì chúng ta sẽ dùng JavaScript fetch
+
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -10,11 +9,11 @@
     <title>Đăng Ký - TECHFIX</title>
     <link href="/TechFixPHP/assets/css/register.css" rel="stylesheet" />
     <style>
-        /* CSS cho toast */
+       
         .toast { position: fixed; bottom: 20px; right: 20px; background: #333; color: #fff; padding: 1rem 1.5rem; border-radius: 8px; opacity: 0; transition: opacity 0.3s; z-index: 9999; }
         .toast.show { opacity: 1; }
         
-        /* CSS cho Camera (Thêm mới) */
+        
         .video-container {
             position: relative; width: 100%; padding-top: 75%; /* Tỷ lệ 4:3 */
             background: #000;
@@ -89,7 +88,6 @@
         const videoFeed = document.getElementById("videoFeed");
         const toast = document.getElementById("toast");
 
-        // Hàm showToast (từ code của bạn)
         function showToast(message, type = "info") {
             toast.textContent = message;
             toast.style.background = type === "error" ? "#d9534f" :
@@ -99,42 +97,37 @@
             setTimeout(() => toast.classList.remove("show"), 4000);
         }
 
-        // Khi nhấn nút "Bật Camera"
         btnStartCamera.addEventListener("click", async () => {
             showToast("Đang tải models AI (~5MB)...", "info");
-            await loadModels(); // Tải models từ faceAuth.js
+            await loadModels(); 
             showToast("Đang bật camera...", "info");
             
-            const started = await startVideo("videoFeed"); // Bật video
+            const started = await startVideo("videoFeed"); 
             
             if (started) {
                 showToast("Đã bật camera! Hãy nhìn thẳng.", "success");
-                btnStartCamera.style.display = 'none'; // Ẩn nút đi
+                btnStartCamera.style.display = 'none'; 
             } else {
                 showToast("Lỗi bật camera! Vui lòng cho phép trình duyệt truy cập.", "error");
             }
         });
 
-        // Khi nhấn nút "Hoàn tất Đăng Ký"
         registerForm.addEventListener("submit", async (e) => {
-            e.preventDefault(); // <-- Ngăn chặn POST truyền thống
+            e.preventDefault(); 
             showToast("Đang xử lý, vui lòng chờ...", "info");
 
-            // 1. Chụp ảnh và lấy đặc trưng khuôn mặt
             const descriptor = await getFaceDescriptor("videoFeed");
             if (!descriptor) {
                 showToast("Không nhận diện được khuôn mặt. Vui lòng bật camera và nhìn thẳng.", "error");
                 return;
             }
 
-           // 2. Lấy thông tin form
     const name = document.getElementById('name').value;
     const phone = document.getElementById('phone').value;
-    const email = document.getElementById('email').value; // <-- THÊM DÒNG NÀY
+    const email = document.getElementById('email').value; 
     const password = document.getElementById('password').value;
     const address = document.getElementById('address').value;
 
-    // 3. Gửi tất cả về server (api/register-face.php)
     try {
         const res = await fetch("../api/register-face.php", {
             method: "POST",
@@ -142,7 +135,7 @@
             body: JSON.stringify({ 
                 name: name, 
                 phone: phone, 
-                email: email, // <-- THÊM DÒNG NÀY
+                email: email,
                 password: password, 
                 address: address,
                 descriptor: Array.from(descriptor)
@@ -152,9 +145,9 @@
 
                 if (data.success) {
                     showToast("Đăng ký thành công! Đang chuyển đến trang đăng nhập.", "success");
-                    stopVideo(); // Tắt camera
+                    stopVideo(); 
                     setTimeout(() => {
-                        window.location.href = "login.php"; // Chuyển về trang login
+                        window.location.href = "login.php"; 
                     }, 2000);
                 } else {
                     showToast(data.message, "error");
@@ -163,8 +156,6 @@
                 showToast("Lỗi máy chủ: " + err.message, "error");
             }
         });
-
-        // Tắt camera khi rời trang
         window.addEventListener("beforeunload", () => stopVideo());
     </script>
 </body>

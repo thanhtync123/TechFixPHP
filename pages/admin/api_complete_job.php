@@ -1,56 +1,57 @@
 <?php
 session_start();
 include '../../config/db.php';
+require_once '../../libs/send_mail.php';
 
-if (!isset($_SESSION['user']) || $_SESSION['role'] !== 'technical') {
+if (!isset($_SESSION['user']) || ($_SESSION['role'] ?? null) !== 'technical') {
     die("Bạn không có quyền.");
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $booking_id = $_POST['booking_id'] ?? 0;
-    $tech_id = $_SESSION['user']['id'];
+    $booking_id = isset($_POST['booking_id']) ? (int) $_POST['booking_id'] : 0;
+    $tech_id = (int) ($_SESSION['user']['id'] ?? 0);
 
     if ($booking_id && $tech_id) {
-        
         $stmt = $conn->prepare("UPDATE bookings SET status = 'completed' WHERE id = ? AND technician_id = ?");
         $stmt->bind_param("ii", $booking_id, $tech_id);
         $stmt->execute();
         $stmt->close();
 
-        // 2. Lấy thông tin khách hàng (ĐÃ SỬA: LẤY EMAIL THẬT)
-        $result = $conn->query("
+        $stmtInfo = $conn->prepare("
             SELECT b.customer_id, u.email, u.name 
             FROM bookings b
             JOIN users u ON b.customer_id = u.id
-            WHERE b.id = $booking_id
+            WHERE b.id = ?
+            LIMIT 1
         ");
-        
-        if ($result && $result->num_rows > 0) {
-            $customer = $result->fetch_assoc();
-            $customer_id = $customer['customer_id'];
-            $customer_email = $customer['email']; // <-- Lấy email thật
-            $customer_name = $customer['name'];
+        $stmtInfo->bind_param("i", $booking_id);
+        $stmtInfo->execute();
+        $result = $stmtInfo->get_result();
+        $customer = $result->fetch_assoc();
+        $stmtInfo->close();
 
-            if ($customer_id && $customer_id > 0 && !empty($customer_email)) 
-            {
-                $message_chuong = "Đơn hàng #${booking_id} đã hoàn thành. Cảm ơn bạn!";
-                $message_mail = "Chào bạn {$customer_name},\n\nĐơn hàng #${booking_id} đã hoàn thành.\nCảm ơn bạn đã sử dụng dịch vụ của TECHFIX!";
-                $subject = "TechFix: Đơn hàng #${booking_id} đã hoàn thành";
-                $headers = 'From: support@techfix.com';
+        if ($customer && !empty($customer['email'])) {
+            $customer_id = (int) $customer['customer_id'];
+            $customer_email = $customer['email'];
+            $customer_name = $customer['name'] ?? 'Khách hàng';
 
-                try {
-                    $stmt_notify = $conn->prepare("INSERT INTO notifications (customer_id, message) VALUES (?, ?)");
-                    $stmt_notify->bind_param("is", $customer_id, $message_chuong);
-                    $stmt_notify->execute();
+            $message_chuong = "Đơn hàng #{$booking_id} đã hoàn thành. Cảm ơn bạn!";
+            $message_mail = "Chào bạn {$customer_name},\n\nĐơn hàng #{$booking_id} đã hoàn thành.\nCảm ơn bạn đã sử dụng dịch vụ của TECHFIX!";
 
-                    // Gửi Email (Dùng email thật)
-                    @mail($customer_email, $subject, $message_mail, $headers);
+            try {
+                $stmtNotify = $conn->prepare("INSERT INTO notifications (customer_id, message) VALUES (?, ?)");
+                $stmtNotify->bind_param("is", $customer_id, $message_chuong);
+                $stmtNotify->execute();
+                $stmtNotify->close();
 
-                } catch (Exception $e) { /* Bỏ qua lỗi */ }
+                sendBookingEmail($customer_email, $customer_name, $booking_id, 'paid');
+            } catch (Exception $e) {
+                error_log('Error notifying customer: ' . $e->getMessage());
             }
         }
     }
-    
+
     header("Location: tech_schedule.php");
+    exit;
 }
 ?>

@@ -1,11 +1,7 @@
-// js/faceAuth.js
 
-// Biến toàn cục để giữ stream video
 let videoStream;
 
-// Hàm này tải các mô hình AI đã huấn luyện
 async function loadModels() {
-    // Đường dẫn này phải tính từ file HTML (login.php)
     const MODEL_URL = '../../assets/models'; 
     
     console.log("Đang tải models...");
@@ -21,7 +17,6 @@ async function loadModels() {
     }
 }
 
-// Hàm này bật camera
 async function startVideo(videoId) {
     const videoEl = document.getElementById(videoId);
     if (!videoEl) {
@@ -47,7 +42,6 @@ async function startVideo(videoId) {
     }
 }
 
-// Hàm này tắt camera
 function stopVideo() {
     if (videoStream) {
         videoStream.getTracks().forEach(track => track.stop());
@@ -55,7 +49,6 @@ function stopVideo() {
     }
 }
 
-// Hàm này chụp ảnh, phân tích và trả về "Đặc trưng" (128 con số)
 async function getFaceDescriptor(videoId) {
     const videoEl = document.getElementById(videoId);
     if (!videoEl) {
@@ -65,10 +58,9 @@ async function getFaceDescriptor(videoId) {
 
     console.log("Đang phân tích khuôn mặt...");
 
-    // Tùy chọn để tăng độ chính xác
+    
     const displaySize = { width: videoEl.width, height: videoEl.height };
     
-    // Phát hiện khuôn mặt
     const detection = await faceapi.detectSingleFace(videoEl)
                                  .withFaceLandmarks()
                                  .withFaceDescriptor();
@@ -79,6 +71,5 @@ async function getFaceDescriptor(videoId) {
     }
 
     console.log("Đã tìm thấy! Đang tính toán đặc trưng...");
-    // Trả về mảng 128 con số (Float32Array)
     return detection.descriptor; 
 }

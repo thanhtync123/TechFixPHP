@@ -728,3 +728,106 @@
     background-color: rgba(255, 255, 255, 0.1);
     border-color: #f093fb; /* Thêm hiệu ứng hover đẹp hơn */
 }
+/*
+=====================================
+ SỬA LỖI: THÊM CSS CHO NÚT HỦY
+=====================================
+*/
+.btn-cancel {
+    background: #6c757d; /* Màu xám */
+    color: white;
+    margin-top: 0.5rem;
+    width: 100%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 22px; /* Đi chung style với .btn-login */
+    cursor: pointer;
+    font-size: 1.2rem; /* Giống .btn-login (đã giảm) */
+    font-weight: 700;
+    transition: background 0.3s ease;
+}
+
+.btn-cancel:hover {
+    background: #5a6268;
+}
+/* =====================================
+   SỬA LỖI HIỂN THỊ NÚT BẤM CAMERA
+===================================== */
+
+/* 1. Cho phép thẻ tự cuộn nếu nội dung quá cao */
+.login-card {
+    overflow-y: auto !important; /* Cho phép cuộn dọc */
+    overflow-x: hidden;
+    max-height: 90vh; /* Tăng chiều cao tối đa lên 1 chút */
+    padding-bottom: 2rem; /* Thêm khoảng đệm ở dưới cùng */
+}
+
+/* 2. Ép các nút phải hiển thị rõ ràng */
+#btnVerifyFace,
+#btnCancelFace {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 100%; /* Đảm bảo nút chiếm đủ chiều rộng */
+    flex-shrink: 0; /* Ngăn nút bị co lại */
+}
+
+/* 3. Đảm bảo khối camera chiếm đủ không gian */
+#face-login-view {
+    width: 100%;
+    flex-shrink: 0; /* Ngăn khối camera bị co lại */
+}
+/* =====================================
+   SỬA LỖI HIỂN THỊ NÚT BẤM CAMERA
+===================================== */
+
+/* 1. Mặc định, ẩn khối camera */
+#face-login-view {
+    display: none;
+    width: 100%;
+}
+
+/* 2. Tạo một "trạng thái" mới cho thẻ */
+/* Khi thẻ .login-card có thêm class .face-view-active... */
+.login-card.face-view-active {
+    /* ...thì ẨN mọi thứ không cần thiết đi */
+    .login-form,
+    .or-separator,
+    .btn-face-login,
+    .register-link {
+        display: none !important;
+    }
+
+    /* ...và HIỂN THỊ khối camera */
+    #face-login-view {
+        display: block !important;
+    }
+}
+
+/* 3. Ép 2 nút camera luôn hiển thị (an toàn) */
+#btnVerifyFace,
+#btnCancelFace {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 100%;
+    flex-shrink: 0; 
+}
+
+/* (Copy lại style nút Hủy nếu bạn chưa có) */
+.btn-cancel {
+    background: #6c757d;
+    color: white;
+    margin-top: 0.5rem;
+    width: 100%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 22px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    font-weight: 700;
+    transition: background 0.3s ease;
+}
+.btn-cancel:hover {
+    background: #5a6268;
+}

@@ -3,8 +3,8 @@
 include '../../config/db.php';
 $id = intval($_GET['id'] ?? 0);
 $booking = null;
-if ($id>0) {
-    $stmt = $conn->prepare("SELECT b.*, s.name AS service_name FROM booking b LEFT JOIN services s ON b.service_id = s.id WHERE b.id = ? LIMIT 1");
+if ($id > 0) {
+    $stmt = $conn->prepare("SELECT b.*, s.name AS service_name FROM bookings b LEFT JOIN services s ON b.service_id = s.id WHERE b.id = ? LIMIT 1");
     $stmt->bind_param("i", $id);
     $stmt->execute();
     $res = $stmt->get_result();

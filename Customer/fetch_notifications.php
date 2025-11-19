@@ -30,7 +30,10 @@ $notifications = $result->fetch_all(MYSQLI_ASSOC);
 
 // 2. Tự động "đánh dấu đã đọc" các thông báo chưa đọc
 // (Chúng ta làm việc này SAU KHI lấy dữ liệu ở trên)
-$conn->query("UPDATE notifications SET status = 'read' WHERE customer_id = $customer_id AND status = 'unread'");
+$stmtUpdate = $conn->prepare("UPDATE notifications SET status = 'read' WHERE customer_id = ? AND status = 'unread'");
+$stmtUpdate->bind_param("i", $customer_id);
+$stmtUpdate->execute();
+$stmtUpdate->close();
 
 // 3. Trả về dữ liệu JSON cho JavaScript
 echo json_encode($notifications);

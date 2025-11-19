@@ -13,7 +13,7 @@ if ($message === "") {
 // ====== Cấu hình Gemini API ======
 $apiKey = "AIzaSyBXWyyldE0HBLMv3m5xJWv5FjLr2FniKE8";
 // Mới (ĐÚNG):
-$model = "gemini-2.5-flash";
+$model = "gemini-2.0-flash";
 $endpoint = "https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey";
 
 // ====== Gửi yêu cầu đến Gemini ======

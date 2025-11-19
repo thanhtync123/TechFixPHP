@@ -1,33 +1,33 @@
 <?php
 session_start();
-include '../../config/db.php';
-include __DIR__ . '/template/sidebar.php'; 
-// 🔒 Kiểm tra Kỹ thuật viên
+include '../../config/db.php'; 
+
+// 🔒 1. KIỂM TRA QUYỀN (Vẫn giữ ở trên cùng)
 if (!isset($_SESSION['user']) || $_SESSION['role'] !== 'technical') {
     header("Location: /TechFixPHP/pages/public_page/login.php");
     exit();
 }
 
-$tech_id = $_SESSION['user']['id']; // Lấy ID của thợ đang đăng nhập
+// 2. LẤY ID CỦA KỸ THUẬT VIÊN
+$tech_id = $_SESSION['user']['id']; 
 
-// === SỬA ĐỔI CHÍNH (Đổi 'confirmed' thành 'completed') ===
+// 3. TRUY VẤN CSDL (Code của bạn đã đúng)
 $bookings_query = $conn->prepare("
     SELECT 
         b.id, b.customer_name, b.phone, b.address, b.appointment_time, b.status, b.final_price,
         s.name AS service_name
     FROM bookings b
     LEFT JOIN services s ON b.service_id = s.id
-    WHERE b.technician_id = ? AND b.status = 'completed'  -- <-- ĐÃ SỬA
+    WHERE b.technician_id = ? AND b.status = 'completed'
     ORDER BY b.appointment_time DESC
 ");
-// === HẾT SỬA ĐỔI ===
 
 $bookings_query->bind_param("i", $tech_id);
 $bookings_query->execute();
 $result = $bookings_query->get_result();
 $bookings = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
 
-// (Tính năng thêm) Tính tổng tiền thợ đã làm
+// 4. TÍNH TỔNG DOANH THU (Code của bạn đã đúng)
 $total_revenue = 0;
 foreach ($bookings as $b) {
     $total_revenue += $b['final_price'];
@@ -39,26 +39,23 @@ foreach ($bookings as $b) {
 <head>
     <meta charset="UTF-8">
     <title>Lịch sử công việc - TECHFIX</title>
-    <link rel="stylesheet" href="../../assets/css/admin.css"> 
-    <style>
-        body { background: #f5f6fa; font-family: 'Arial', sans-serif; }
-        .container { max-width: 1200px; margin: 30px auto; background: #fff; border-radius: 10px; padding: 30px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #333; }
-        table { width: 100%; border-collapse: collapse; text-align: left; margin-top: 20px;}
-        th, td { padding: 12px 15px; border-bottom: 1px solid #ddd; }
-        th { background: #6c757d; color: #fff; } /* Màu xám cho lịch sử */
-        td { vertical-align: middle; }
-        .total-bar { 
-            font-size: 1.2rem; 
-            font-weight: bold; 
-            text-align: right; 
-            margin-top: 20px; 
-            color: #28a745;
-        }
-    </style>
+    
+    <link rel="stylesheet" href="../../assets/css/tech_history.css"> 
 </head>
 <body>
-    <div class="container">
+
+<?php 
+// =====================================
+//  5. INCLUDE SIDEBAR (ĐÃ SỬA ĐƯỜNG DẪN)
+//  (Nó phải nằm BÊN TRONG thẻ <body>)
+// =====================================
+// Đường dẫn đi lùi 1 cấp (từ technical), sang admin, rồi vào template
+include __DIR__ . '/../admin/template/sidebar.php'; 
+?>
+
+<main class="main-content">
+
+    <div class="container-widget"> 
         <h2>Lịch sử công việc (Đã Hoàn thành)</h2>
         <p><strong>Kỹ thuật viên:</strong> <?php echo htmlspecialchars($_SESSION['name']); ?></p>
 
@@ -72,6 +69,7 @@ foreach ($bookings as $b) {
                         <th>Dịch vụ</th>
                         <th>Ngày hoàn thành</th>
                         <th>Giá tiền</th>
+                        <th>Trạng thái</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -83,6 +81,7 @@ foreach ($bookings as $b) {
                             <td><?= htmlspecialchars($booking['service_name']) ?></td>
                             <td><?= date('d/m/Y H:i', strtotime($booking['appointment_time'])) ?></td>
                             <td style="font-weight: bold;"><?= number_format($booking['final_price']) ?>đ</td>
+                            <td><span class="status"><?= ucfirst($booking['status']) ?></span></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -93,8 +92,8 @@ foreach ($bookings as $b) {
             </div>
 
         <?php else: ?>
-            <p style="text-align:center; color: #777;">Bạn chưa hoàn thành công việc nào.</p>
+            <p class="no-booking-message">Bạn chưa hoàn thành công việc nào.</p>
         <?php endif; ?>
     </div>
-</body>
+</main> </body>
 </html>

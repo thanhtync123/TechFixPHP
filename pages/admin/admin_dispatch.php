@@ -101,7 +101,7 @@ $bookings = $bookings_query ? $bookings_query->fetch_all(MYSQLI_ASSOC) : [];
         <div class="dispatch-layout">
 
             <div class="main-column widget">
-                <h3>Danh Sách Đơn hàng (Bookings)</h3>
+                <h3>Danh Sách Đơn hàng</h3>
                 <?php if (!empty($bookings)): ?>
                     <table>
                         <thead>

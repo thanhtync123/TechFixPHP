@@ -1,58 +1,116 @@
 <?php
 // /TechFixPHP/Customer/submit_booking.php
 header('Content-Type: application/json');
+session_start();
+require_once '../config/db.php';
+require_once __DIR__ . '/../libs/pricing.php';
+require_once __DIR__ . '/../libs/send_mail.php'; // <--- 1. THÊM DÒNG NÀY ĐỂ NẠP HÀM GỬI MAIL
 
-// Lấy dữ liệu JSON được gửi từ JavaScript (Fetch)
-$data = json_decode(file_get_contents("php://input"), true);
-
-// 1. LẤY DỮ LIỆU
-$idCustomer = $data['IdCustomer'] ?? '';
-$customerName = $data['CustomerName'] ?? '';
-$phone = $data['Phone'] ?? '';
-$address = $data['Address'] ?? '';
-$district = $data['District'] ?? ''; // Thêm trường mới
-$serviceId = $data['ServiceId'] ?? '';
-$finalPrice = $data['FinalPrice'] ?? 0; // Thêm trường mới
-$status = 'pending';
-
-// Kết hợp ngày và giờ để tạo datetime chuẩn
-$appointmentDate = $data['AppointmentDate'] ?? '';
-$appointmentTime = $data['AppointmentTime'] ?? '';
-$fullAppointmentTime = $appointmentDate . ' ' . $appointmentTime;
-
-// 2. KẾT NỐI CSDL
-$conn = new mysqli("localhost", "root", "", "hometech_db");
-if ($conn->connect_error) {
-    echo json_encode(['success' => false, 'message' => 'Lỗi kết nối CSDL']);
+function respond_json(bool $success, string $message, array $extra = []): void
+{
+    http_response_code($success ? 200 : 400);
+    echo json_encode(array_merge(['success' => $success, 'message' => $message], $extra));
     exit;
 }
 
-// 3. THÊM DỮ LIỆU
-// (Bạn cần thêm cột 'district' và 'final_price' vào bảng 'bookings' của mình)
-// Ví dụ: ALTER TABLE bookings ADD district VARCHAR(100), ADD final_price DECIMAL(10, 2);
+if (!isset($_SESSION['user']) || ($_SESSION['role'] ?? null) !== 'customer') {
+    respond_json(false, 'Bạn cần đăng nhập bằng tài khoản khách hàng.');
+}
 
-$stmt = $conn->prepare("INSERT INTO bookings 
-    (customer_id, customer_name, phone, address, district, service_id, appointment_time, final_price, status) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+$payload = json_decode(file_get_contents('php://input'), true);
+if (!is_array($payload)) {
+    respond_json(false, 'Dữ liệu không hợp lệ.');
+}
 
-$stmt->bind_param("issssisds", 
-    $idCustomer, 
-    $customerName, 
-    $phone, 
-    $address, 
-    $district, // Thêm
-    $serviceId, 
-    $fullAppointmentTime, 
-    $finalPrice, // Thêm
+$customer      = $_SESSION['user'];
+$customerId    = (int) ($customer['id'] ?? 0);
+$customerName  = $customer['name'] ?? '';
+$customerPhone = $customer['phone'] ?? '';
+// Lấy email từ session (đảm bảo lúc login bạn đã lưu email vào session)
+$customerEmail = $customer['email'] ?? ''; // <--- 2. LẤY EMAIL KHÁCH HÀNG
+$defaultAddress = $customer['address'] ?? '';
+
+$serviceId        = isset($payload['ServiceId']) ? (int) $payload['ServiceId'] : 0;
+$district         = trim($payload['District'] ?? '');
+$appointmentDate  = $payload['AppointmentDate'] ?? '';
+$appointmentSlot  = $payload['AppointmentTime'] ?? '';
+$address          = trim($payload['Address'] ?? $defaultAddress);
+
+if ($customerId <= 0 || empty($customerName) || empty($customerPhone)) {
+    respond_json(false, 'Không tìm thấy thông tin khách hàng.');
+}
+// Kiểm tra nếu thiếu email thì báo lỗi hoặc bỏ qua tùy bạn (ở đây mình chỉ log warning nếu thiếu)
+if (empty($customerEmail)) {
+    error_log("Warning: Khách hàng ID $customerId không có email trong session.");
+}
+
+if ($serviceId <= 0) {
+    respond_json(false, 'Vui lòng chọn dịch vụ.');
+}
+if (empty($district) || empty($appointmentDate) || empty($appointmentSlot)) {
+    respond_json(false, 'Vui lòng chọn khu vực, ngày và khung giờ.');
+}
+$dateObj = DateTime::createFromFormat('Y-m-d', $appointmentDate);
+if (!$dateObj) {
+    respond_json(false, 'Ngày hẹn không hợp lệ.');
+}
+$slotObj = DateTime::createFromFormat('H:i:s', $appointmentSlot);
+if (!$slotObj) {
+    respond_json(false, 'Khung giờ không hợp lệ.');
+}
+
+$stmtService = $conn->prepare("SELECT name, price FROM services WHERE id = ? LIMIT 1");
+$stmtService->bind_param('i', $serviceId);
+$stmtService->execute();
+$serviceResult = $stmtService->get_result();
+$service = $serviceResult->fetch_assoc();
+$stmtService->close();
+
+if (!$service) {
+    respond_json(false, 'Không tìm thấy dịch vụ.');
+}
+
+[$finalPrice, $priceNotes] = calculateSmartQuote((float) $service['price'], $district, $appointmentDate, $appointmentSlot);
+
+$status = 'pending';
+$noteParts = ["Khung giờ {$appointmentSlot}"];
+if (!empty($priceNotes)) {
+    $noteParts[] = implode(' | ', $priceNotes);
+}
+$note = implode(' - ', $noteParts);
+
+$stmtInsert = $conn->prepare("INSERT INTO bookings (customer_id, customer_name, phone, address, district, service_id, appointment_time, note, final_price, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+$appointmentDateOnly = $dateObj->format('Y-m-d');
+$finalPriceValue = round($finalPrice, 0);
+$stmtInsert->bind_param(
+    'issssissds',
+    $customerId,
+    $customerName,
+    $customerPhone,
+    $address,
+    $district,
+    $serviceId,
+    $appointmentDateOnly,
+    $note,
+    $finalPriceValue,
     $status
 );
 
-if ($stmt->execute()) {
-    echo json_encode(['success' => true, 'message' => 'Đặt lịch thành công!']);
-} else {
-    echo json_encode(['success' => false, 'message' => 'Lỗi khi lưu đơn đặt lịch: ' . $stmt->error]);
+if ($stmtInsert->execute()) {
+    $newBookingId = $stmtInsert->insert_id;
+
+    // <--- 3. THỰC HIỆN GỬI MAIL TẠI ĐÂY --->
+    if (!empty($customerEmail)) {
+        // Gọi hàm gửi mail, type là 'new' để lấy template xác nhận đơn
+        sendBookingEmail($customerEmail, $customerName, $newBookingId, 'new');
+    }
+    // <--- KẾT THÚC PHẦN GỬI MAIL --->
+
+    respond_json(true, 'Đặt lịch thành công!', [
+        'booking_id' => $newBookingId,
+        'final_price' => $finalPriceValue,
+    ]);
 }
 
-$stmt->close();
-$conn->close();
+respond_json(false, 'Lỗi khi lưu đơn đặt lịch: ' . $stmtInsert->error);
 ?>

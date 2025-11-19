@@ -1,0 +1,164 @@
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body { 
+        font-family: 'Segoe UI', 'Roboto', Helvetica, Arial, sans-serif; 
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); /* Nền gradient hiện đại */
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .tech-card { 
+        background: #ffffff; 
+        width: 100%;
+        max-width: 600px; 
+        padding: 40px; 
+        border-radius: 16px; /* Bo góc mềm mại */
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1); /* Đổ bóng sâu tạo chiều sâu */
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Trang trí thanh màu trên cùng */
+    .tech-card::before {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 6px;
+        background: linear-gradient(90deg, #007bff, #00c6ff);
+    }
+
+    h2 { 
+        text-align: center; 
+        color: #2c3e50; 
+        font-size: 24px;
+        margin-bottom: 30px;
+        font-weight: 700;
+    }
+
+    .back-link { 
+        display: inline-block; 
+        margin-bottom: 20px; 
+        color: #6c757d; 
+        text-decoration: none; 
+        font-size: 14px;
+        transition: color 0.3s;
+        font-weight: 500;
+    }
+    .back-link:hover { 
+        color: #007bff; 
+        text-decoration: underline;
+    }
+
+    .form-group { 
+        margin-bottom: 25px; 
+    }
+
+    label { 
+        display: block; 
+        margin-bottom: 8px; 
+        font-weight: 600; 
+        color: #34495e;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Style cho Input và Select */
+    input[type="text"], 
+    input[type="number"], 
+    select { 
+        width: 100%; 
+        padding: 12px 15px; 
+        border: 2px solid #e9ecef; 
+        border-radius: 8px; 
+        font-size: 16px;
+        color: #495057;
+        transition: all 0.3s ease;
+        background-color: #fdfdfd;
+    }
+
+    input:focus, select:focus { 
+        border-color: #007bff; 
+        outline: none; 
+        box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+        background-color: #fff;
+    }
+
+    /* Input bị khóa (readonly) */
+    input[readonly] {
+        background-color: #e9ecef;
+        color: #6c757d;
+        cursor: not-allowed;
+    }
+
+    /* Style cho Input File */
+    input[type="file"] { 
+        width: 100%; 
+        padding: 10px; 
+        border: 2px dashed #cbd5e0; 
+        border-radius: 8px; 
+        background: #f8f9fa;
+        cursor: pointer;
+        transition: border 0.3s;
+    }
+    input[type="file"]:hover {
+        border-color: #007bff;
+        background: #f1f8ff;
+    }
+
+    /* Vùng chứa 2 ảnh ngang nhau */
+    .photo-row {
+        display: flex;
+        gap: 20px;
+    }
+    .photo-col {
+        flex: 1;
+    }
+
+    /* Nút Submit */
+    button { 
+        width: 100%; 
+        padding: 15px; 
+        background: linear-gradient(90deg, #007bff, #0062cc); 
+        color: white; 
+        border: none; 
+        border-radius: 8px; 
+        cursor: pointer; 
+        font-size: 16px; 
+        font-weight: 700; 
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin-top: 10px;
+    }
+
+    button:hover { 
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,123,255,0.3);
+    }
+
+    button:active {
+        transform: translateY(0);
+    }
+
+    .note { 
+        font-size: 12px; 
+        color: #999; 
+        margin-top: 5px; 
+        font-style: italic; 
+    }
+
+    /* Responsive cho điện thoại */
+    @media (max-width: 500px) {
+        .photo-row {
+            flex-direction: column;
+            gap: 10px;
+        }
+        .tech-card {
+            padding: 20px;
+        }
+    }

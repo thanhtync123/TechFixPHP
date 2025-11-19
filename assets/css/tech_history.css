@@ -1,0 +1,97 @@
+/* /assets/css/tech_history.css */
+
+/* * CSS NÀY DÙNG CHUNG VỚI SIDEBAR.
+ * File sidebar.php của bạn đã định nghĩa:
+ * .main-content {
+ *     margin-left: 220px;
+ *     padding: 20px;
+ * }
+ * Vì vậy, chúng ta cần bọc nội dung trong thẻ <main class="main-content">
+ */
+
+body {
+    background-color: #f8f9fa; /* Màu nền xám nhạt */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #212529;
+}
+
+.container-widget {
+    max-width: 1200px;
+    margin: 0 auto; /* Bỏ margin top vì main-content đã có padding */
+    background: #fff;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.container-widget h2 {
+    text-align: center;
+    color: #343a40;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.container-widget p {
+    text-align: center;
+    font-size: 1.1rem;
+    color: #6c757d;
+    margin-bottom: 25px;
+}
+
+/* --- Bảng Dữ liệu --- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    margin-top: 20px;
+    font-size: 0.95rem;
+}
+
+th, td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #dee2e6;
+    vertical-align: middle;
+}
+
+th {
+    background: #6c757d; /* Màu xám cho lịch sử (theo code của bạn) */
+    color: #fff;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+td .status {
+    padding: 6px 15px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    background-color: #d4edda; /* Xanh lá nhạt */
+    color: #155724; /* Xanh lá đậm */
+    border: 1px solid #c3e6cb;
+}
+
+/* --- Thanh Tổng Tiền --- */
+.total-bar { 
+    font-size: 1.25rem; 
+    font-weight: bold; 
+    text-align: right; 
+    margin-top: 25px; 
+    padding-top: 20px;
+    border-top: 2px solid #f1f1f1;
+    color: #28a745; /* Màu xanh lá (theo code của bạn) */
+}
+
+/* --- Tin nhắn rỗng --- */
+.no-booking-message {
+    text-align:center; 
+    color: #777; 
+    font-size: 1.1rem; 
+    padding: 40px 20px;
+    font-style: italic;
+}

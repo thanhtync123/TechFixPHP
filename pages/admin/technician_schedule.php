@@ -5,6 +5,7 @@ if (!isset($_SESSION['user']) || ($_SESSION['role'] !== 'admin' && $_SESSION['ro
     exit();
 }
 include __DIR__ . '/../../config/db.php';
+include __DIR__ . '/../admin/template/sidebar.php'; 
 
 // Lấy vai trò và ID của người dùng
 $role = $_SESSION['role'];
@@ -125,7 +126,7 @@ elseif ($role === 'technical') {
                     </tbody>
                 </table>
             <?php else: ?>
-                <p style="text-align:center;">Bạn chưa có lịch làm việc nào được giao (ở trạng thái 'confirmed').</p>
+                <p style="text-align:center;">Bạn chưa có lịch làm việc nào được giao (ở trạng thái 'Xác nhận').</p>
             <?php endif; ?>
 
         <?php endif; ?>

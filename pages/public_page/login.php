@@ -1,44 +1,65 @@
 <?php
 // login.php
 session_start();
-include "../../config/db.php"; // Đường dẫn đúng tới config/db.php
+include "../../config/db.php"; // Đường dẫn đúng tới config/db Ways
 
-// Xử lý đăng nhập bằng tài khoản/mật khẩu (khi gọi từ JS fetch)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST'
+    && isset($_SERVER['HTTP_X_REQUESTED_WITH'])
+    && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+
     $data = json_decode(file_get_contents('php://input'), true);
-    
-    // 1. (ĐÃ SỬA VỀ KÉM AN TOÀN) Lấy thông tin
-    // Cảnh báo: Code này có lỗ hổng SQL Injection
-    $phone = mysqli_real_escape_string($conn, $data['phone'] ?? '');
-    $password = mysqli_real_escape_string($conn, $data['password'] ?? ''); 
+    $phone    = trim($data['phone'] ?? '');
+    $password = $data['password'] ?? '';
 
-    // 2. (ĐÃ SỬA VỀ KÉM AN TOÀN) So sánh chữ trực tiếp
-    $query = "SELECT * FROM users WHERE phone = '$phone' AND password = '$password'";
-    $result = mysqli_query($conn, $query);
-    $user = mysqli_fetch_assoc($result);
-
-    if (!$user) {
-        // Nếu không có user hoặc mật khẩu sai
+    if (empty($phone) || empty($password)) {
         http_response_code(401);
-        echo json_encode(['error' => 'Sai tài khoản hoặc mật khẩu']);
+        echo json_encode(['error' => 'Vui lòng nhập đầy đủ thông tin']);
         exit;
     }
 
-    // === HẾT SỬA LỖI ===
+    // Lấy user theo số điện thoại
+    $stmt = $conn->prepare("SELECT * FROM users WHERE phone = ? LIMIT 1");
+    $stmt->bind_param('s', $phone);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $user   = $result->fetch_assoc();
+    $stmt->close();
 
-    // Lưu session
-    $_SESSION['user'] = $user;
-    $_SESSION['phone'] = $user['phone'];
-    $_SESSION['name'] = $user['name'];
-    $_SESSION['role'] = $user['role'];
-    $_SESSION['user_id'] = $user['id']; 
+    if (!$user) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Sai số điện thoại hoặc mật khẩu']);
+        exit;
+    }
 
-    // Trả về JSON cho frontend
+    // === SO SÁNH MẬT KHẨU ===
+    $storedPassword = $user['password'];
+
+    // Trường hợp 1: Mật khẩu lưu dạng plaintext
+    $plainMatch = ($password === $storedPassword);
+
+    // Trường hợp 2: Mật khẩu lưu dạng MD5 (32 ký tự hex)
+    $md5Match = (strlen($storedPassword) === 32 && md5($password) === $storedPassword);
+
+    // Nếu cả 2 đều không khớp → sai mật khẩu
+    if (!$plainMatch && !$md5Match) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Sai số điện thoại hoặc mật khẩu']);
+        exit;
+    }
+
+    // Đăng nhập thành công
+    $_SESSION['user']     = $user;
+    $_SESSION['phone']    = $user['phone'];
+    $_SESSION['name']     = $user['name'];
+    $_SESSION['role']     = $user['role'];
+    $_SESSION['user_id']  = $user['id'];
+
+    // Trả về thông tin user (không trả password)
     echo json_encode([
-        'id' => $user['id'],
-        'name' => $user['name'],
+        'id'    => $user['id'],
+        'name'  => $user['name'],
         'phone' => $user['phone'],
-        'role' => $user['role']
+        'role'  => $user['role']
     ]);
     exit;
 }
@@ -51,7 +72,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
     <title>Đăng nhập - TECHFIX</title>
 
     <link rel="stylesheet" href="../../../TechFixPHP/assets/css/login.css">
-
     <style>
         body, html { overflow: hidden; margin: 0; height: 100vh; }
         .or-separator { text-align: center; margin: 1.5rem 0; color: #888; font-weight: 600; }
@@ -68,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
         }
         .face-login-view video {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            object-fit: cover; transform: scaleX(-1); /* Lật camera */
+            object-fit: cover; transform: scaleX(-1);
         }
         .btn-cancel {
             background: #6c757d; color: white; margin-top: 0.5rem; width: 100%;
@@ -108,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
                     <div class="video-container">
                         <video id="videoFeed" autoplay muted playsinline></video>
                     </div>
-                    <button id="btnVerifyFace" class="btn-login">Xác thực</button>
+                    <button id="btnVerifyFace" class="btn-login" style="margin-top: 1rem;">Xác thực</button>
                     <button id="btnCancelFace" class="btn-cancel">Hủy</button>
                 </div>
 
@@ -116,11 +136,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
                     <div class="form-group icon-input">
                         <input type="text" id="phone" placeholder="Số điện thoại" class="form-control" required>
                     </div>
-
                     <div class="form-group icon-input">
                         <input type="password" id="password" placeholder="Mật khẩu" class="form-control" required>
                     </div>
-
                     <button type="submit" class="btn-login">Đăng Nhập</button>
                 </form>
 
@@ -136,10 +154,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
             </div>
 
             <div class="company-info">
-                <img src="../../../TechFixPHP/assets/image/logo.png" alt="Techfix Logo" class="company-logo" />
+                <img src="../../../TechFixPHP/assets/image/vlute1.png" alt="Techfix Logo" class="company-logo" />
                 <div class="company-description">
                     <h3>Về TECHFIX</h3>
-                    <p>TECHFIX là web trong lĩnh vực kỹ thuật & công nghệ...</p>
+                    <p>TECHFIX là nền tảng dịch vụ gia đình hiện đại, kết nối khách hàng với đội ngũ kỹ thuật viên uy tín và chuyên nghiệp.</p>
+                    <p>Chỉ với vài thao tác đơn giản, bạn có thể dễ dàng đặt lịch sửa chữa, bảo trì hay vệ sinh nhà cửa ngay tại nhà.</p>
+                    <p>Với TECHFIX, chúng tôi mang đến trải nghiệm nhanh chóng, minh bạch và an toàn – giúp bạn tận hưởng không gian sống tiện nghi hơn mỗi ngày.</p>
                 </div>
             </div>
         </div>
@@ -147,10 +167,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
 
     <div id="toast" class="toast"></div>
 
-    <script src="/TechFixPHP/assets/js/faceAuth.js"></script>
-    
     <script src="https://unpkg.com/face-api.js@0.22.2/dist/face-api.min.js"></script>
-
+    <script src="/TechFixPHP/assets/js/faceAuth.js"></script> 
+    
     <script>
         const toast = document.getElementById("toast");
         const loginForm = document.getElementById("loginForm");
@@ -169,14 +188,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
             setTimeout(() => toast.classList.remove("show"), 3000);
         }
 
-        // Xử lý đăng nhập bằng tài khoản/mật khẩu
+        // Đăng nhập thường
         loginForm.addEventListener("submit", async (e) => {
             e.preventDefault();
             const phone = document.getElementById("phone").value.trim();
             const password = document.getElementById("password").value;
 
             try {
-                const res = await fetch("login.php", { // Gọi chính file này (xử lý JSON)
+                const res = await fetch("login.php", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -194,25 +213,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
                 showToast("Đăng nhập thành công!", "success");
                 localStorage.setItem("currentUser", JSON.stringify(user));
 
-                // Redirect theo role
                 setTimeout(() => {
-    if (user.role === "admin") {
-        window.location.href = "/TechFixPHP/pages/admin/dashboard.php"; // <-- Admin vào Dashboard
-    } else if (user.role === "technical") {
-        window.location.href = "/TechFixPHP/pages/technical/tech_schedule.php"; // <-- Tech vào Lịch làm việc
-    } else if (user.role === "customer") {
-        window.location.href = "/TechFixPHP/index.php"; // <-- Khách về trang chủ
-    } else {
-        window.location.href = "/TechFixPHP/pages/public_page/login.php"; 
-    }
-}, 1000);
+                    if (user.role === "admin") {
+                        window.location.href = "/TechFixPHP/pages/admin/dashboard.php";
+                    } else if (user.role === "technical") {
+                        window.location.href = "/TechFixPHP/pages/admin/tech_schedule.php";
+                    } else if (user.role === "customer") {
+                        window.location.href = "/TechFixPHP/index.php";
+                    } else {
+                        window.location.href = "/TechFixPHP/pages/public_page/login.php";
+                    }
+                }, 1000);
 
             } catch (err) {
                 showToast(err.message, "error");
             }
         });
 
-        // Đăng nhập bằng khuôn mặt
+        // Đăng nhập bằng khuôn mặt (giữ nguyên)
         btnFaceLogin.addEventListener("click", async () => {
             faceView.style.display = "block";
             loginForm.style.display = "none";
@@ -247,7 +265,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
                 const res = await fetch("../api/verify-face.php", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ descriptor: Array.from(descriptor) }) // Gửi mảng
+                    body: JSON.stringify({ descriptor: Array.from(descriptor) })
                 });
 
                 if (!res.ok) {
@@ -256,31 +274,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
                 }
 
                 const user = await res.json();
-                
                 if (user && user.role) {
                     showToast("Xác thực thành công!", "success");
                     localStorage.setItem("currentUser", JSON.stringify(user));
-                    
-                    // === BẮT ĐẦU SỬA LỖI 3: LỖI CHUYỂN HƯỚNG ===
                     setTimeout(() => {
-    if (user.role === "admin") {
-        window.location.href = "/TechFixPHP/pages/admin/dashboard.php"; // <-- Admin vào Dashboard
-    } else if (user.role === "technical") {
-        window.location.href = "/TechFixPHP/pages/technical/tech_schedule.php"; // <-- Tech vào Lịch làm việc
-    } else if (user.role === "customer") {
-        window.location.href = "/TechFixPHP/index.php"; // <-- Khách về trang chủ
-    } else {
-        window.location.href = "/TechFixPHP/pages/public_page/login.php"; 
-    }
-}, 1000);
-                    // === HẾT SỬA LỖI 3 ===
-                    
+                        if (user.role === "admin") {
+                            window.location.href = "/TechFixPHP/pages/admin/dashboard.php";
+                        } else if (user.role === "technical") {
+                            window.location.href = "/TechFixPHP/pages/technical/tech_schedule.php";
+                        } else if (user.role === "customer") {
+                            window.location.href = "/TechFixPHP/index.php";
+                        } else {
+                            window.location.href = "/TechFixPHP/pages/public_page/login.php";
+                        }
+                    }, 1000);
                 } else {
-                    // (Trường hợp này hiếm khi xảy ra nếu PHP trả về res.ok)
                     showToast("Không nhận dạng được khuôn mặt.", "error");
                 }
             } catch (err) {
-                // (Lỗi 401 hoặc lỗi JSON sẽ nhảy vào đây)
                 showToast(err.message, "error");
             }
         });
@@ -290,7 +301,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
         function cancelFace() {
             faceView.style.display = "none";
             loginForm.style.display = "block";
-            btnFaceLogin.style.display = "flex"; // Sửa lại thành 'flex'
+            btnFaceLogin.style.display = "flex";
             stopVideo();
         }
 

@@ -1,74 +1,112 @@
 <?php
 session_start();
 
-// ✅ Kiểm tra đăng nhập & quyền admin trước khi xuất HTML
+// ✅ 1. KIỂM TRA QUYỀN VÀ INCLUDE DB (PHẢI LÀM TRƯỚC TIÊN)
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     header('Location: /TechFixPHP/pages/public_page/login.php');
     exit;
 }
 
 include '../../config/db.php';
-include __DIR__ . '/template/sidebar.php';
 
-// ===================== XỬ LÝ THÊM / SỬA DỊCH VỤ =====================
-if (isset($_POST['save'])) {
-    $id = intval($_POST['id']);
-    $name = trim($_POST['name']);
-    $price = floatval($_POST['price']);
-    $unit = trim($_POST['unit']);
-    $description = trim($_POST['description']);
+// (Biến này để truyền thông báo xuống JS ở dưới)
+$toastMessage = null;
+$toastType = 'success';
 
-    try {
+// ==========================================================
+// 2. XỬ LÝ TOÀN BỘ LOGIC (POST/GET) TRƯỚC KHI XUẤT HTML
+// ==========================================================
+
+try {
+    // --- Xử lý cập nhật/thêm dịch vụ ---
+    if (isset($_POST['save'])) {
+        $id = intval($_POST['id']);
+        $name = trim($_POST['name']);
+        $price = floatval($_POST['price']);
+        $unit = trim($_POST['unit']);
+        $description = trim($_POST['description']);
+
+        // ✅ SỬA LỖI BẢO MẬT (Dùng Prepared Statements)
         if ($id > 0) {
-            $query = "UPDATE `hometech_db`.`services` 
-                      SET `name` = '$name', `description` = '$description', 
-                          `price` = $price, `unit` = '$unit' 
-                      WHERE (`id` = $id)";
+            // Cập nhật
+            $stmt = $conn->prepare("UPDATE services 
+                                   SET name = ?, description = ?, price = ?, unit = ? 
+                                   WHERE id = ?");
+            $stmt->bind_param("ssdsi", $name, $description, $price, $unit, $id);
         } else {
-            $query = "INSERT INTO `services` (`name`, `description`, `price`, `unit`) 
-                      VALUES ('$name', '$description', $price, '$unit')";
+            // Thêm mới
+            $stmt = $conn->prepare("INSERT INTO services (name, description, price, unit) 
+                                   VALUES (?, ?, ?, ?)");
+            $stmt->bind_param("ssds", $name, $description, $price, $unit);
         }
-        mysqli_query($conn, $query);
-        header('Location: services.php');
-        exit;
-    } catch (mysqli_sql_exception $e) {
-        echo '<script>alert("Lỗi: ' . addslashes($e->getMessage()) . '")</script>';
+        
+        $stmt->execute();
+        $stmt->close();
+        
+        $toastMessage = "Đã lưu dịch vụ thành công!"; // <-- Tạo thông báo
+
     }
+
+    // --- Xử lý xóa dịch vụ ---
+    if (isset($_GET['delete'])) {
+        $id = intval($_GET['delete']);
+        
+        // ✅ SỬA LỖI BẢO MẬT
+        $stmt = $conn->prepare("DELETE FROM services WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $stmt->close();
+        
+        $toastMessage = "Đã xóa dịch vụ!"; // <-- Tạo thông báo
+    }
+
+} catch (mysqli_sql_exception $e) {
+    // Bắt lỗi (ví dụ: trùng tên)
+    $toastMessage = "Lỗi: " . $e->getMessage();
+    $toastType = "danger"; // (Màu đỏ)
 }
 
-// ===================== XỬ LÝ XÓA DỊCH VỤ =====================
-if (isset($_GET['delete'])) {
-    $id = intval($_GET['delete']);
-    $query = "DELETE FROM services WHERE id = $id";
-    mysqli_query($conn, $query);
-    header('Location: services.php');
-    exit;
-}
+// ==========================================================
+// 3. CHUẨN BỊ DỮ LIỆU CHO HTML (SAU KHI XỬ LÝ LOGIC)
+// ==========================================================
 
-// ===================== LẤY DỮ LIỆU ĐỂ CHỈNH SỬA =====================
+// --- LẤY DỮ LIỆU ĐỂ CHỈNH SỬA ---
 $edit = ['id' => 0, 'name' => '', 'price' => 0, 'unit' => '', 'description' => ''];
 if (isset($_GET['edit'])) {
     $id = intval($_GET['edit']);
-    $result = mysqli_query($conn, "SELECT * FROM services WHERE id = $id");
-    $edit = mysqli_fetch_assoc($result);
+    
+    // ✅ SỬA LỖI BẢO MẬT
+    $stmt = $conn->prepare("SELECT * FROM services WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result_edit = $stmt->get_result();
+    $edit_data = $result_edit->fetch_assoc();
+    if ($edit_data) {
+        $edit = $edit_data;
+    }
+    $stmt->close();
 }
 
-// ===================== LẤY DANH SÁCH DỊCH VỤ =====================
+// --- LẤY DANH SÁCH DỊCH VỤ ---
 $query = "SELECT * FROM services ORDER BY id DESC";
-$result = mysqli_query($conn, $query);
+$result = mysqli_query($conn, $query); // (An toàn vì không có input từ user)
+
+
+// ==========================================================
+// 4. BẮT ĐẦU XUẤT HTML (SAU CÙNG)
+// (Lỗi của bạn là đặt dòng 'include' này ở trên đầu)
+// ==========================================================
+include __DIR__ . '/template/sidebar.php'; 
 ?>
 
-<!-- ===================== GIAO DIỆN ===================== -->
 <link href="/TechFixPHP/assets/css/service_ad.css" rel="stylesheet">
 
-<main class="p-4">
-    <h1 class="mb-3">Quản lý dịch vụ</h1>
+<main class="main-content">
+    <h1 class="mb-3">Quản lý dịch vụ</h1>
 
-    <!-- Form thêm/sửa -->
-    <form method="post" class="mb-4">
-        <input type="hidden" name="id" value="<?= $edit['id'] ?>">
+    <form method="post" class="mb-4" action="services.php"> <input type="hidden" name="id" value="<?= $edit['id'] ?>">
 
-        <input type="text" name="name" placeholder="Tên dịch vụ" 
+        <input type="text" name="name" placeholder="Tên dịch vụ" 
                value="<?= htmlspecialchars($edit['name']) ?>" required>
 
         <input type="number" name="price" placeholder="Giá" 
@@ -83,12 +121,14 @@ $result = mysqli_query($conn, $query);
             <option value="bộ" <?= $edit['unit'] == 'bộ' ? 'selected' : '' ?>>bộ</option>
         </select>
 
-        <textarea name="description" placeholder="Mô tả" rows="3" cols="30"><?= htmlspecialchars($edit['description']) ?></textarea>
+        <textarea name="description" placeholder="Mô tả" rows="3" cols="30"><?= htmlspecialchars($edit['description']) ?></textarea>
 
         <button name="save" type="submit">💾 Lưu</button>
+        <?php if ($edit['id'] > 0): ?>
+            <a href="services.php" class="btn-cancel">Hủy sửa</a>
+        <?php endif; ?>
     </form>
 
-    <!-- Bảng dịch vụ -->
     <table id="servicesTable">
         <thead>
             <tr>
@@ -97,7 +137,7 @@ $result = mysqli_query($conn, $query);
                 <th>Mô Tả</th>
                 <th>Giá</th>
                 <th>Đơn Vị</th>
-                <th>Thao tác</th>
+                <th>Thao tác</th>
             </tr>
         </thead>
         <tbody>
@@ -107,12 +147,11 @@ $result = mysqli_query($conn, $query);
                         <td><?= $row['id'] ?></td>
                         <td><?= htmlspecialchars($row['name']) ?></td>
                         <td><?= htmlspecialchars($row['description']) ?></td>
-                        <td><?= htmlspecialchars($row['price']) ?></td>
-                        <td><?= htmlspecialchars($row['unit']) ?></td>
+                        <td><?= number_format($row['price']) ?> đ</td> <td><?= htmlspecialchars($row['unit']) ?></td>
                         <td>
                             <a href="services.php?edit=<?= $row['id'] ?>">✏️ Sửa</a> |
                             <a href="services.php?delete=<?= $row['id'] ?>" 
-                               onclick="return confirm('Bạn có chắc chắn muốn xóa dịch vụ này?')">🗑️ Xóa</a>
+                               onclick="return confirm('Bạn có chắc chắn muốn xóa dịch vụ này?')">🗑️ Xóa</a>
                         </td>
                     </tr>
                 <?php endwhile; ?>
@@ -129,5 +168,11 @@ $result = mysqli_query($conn, $query);
 <script>
     $(function() {
         $('#servicesTable').DataTable();
+        
+        // === HIỂN THỊ THÔNG BÁO (TỰ ĐỘNG) ===
+        <?php if ($toastMessage): ?>
+            // Dùng hàm showToast() từ file sidebar.php của bạn
+            showToast(<?php echo json_encode($toastMessage); ?>, <?php echo json_encode($toastType); ?>);
+        <?php endif; ?>
     });
 </script>

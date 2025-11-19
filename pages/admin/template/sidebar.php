@@ -52,13 +52,18 @@ $name = $_SESSION['name'] ?? 'Guest';
 
         <?php elseif ($role === 'technical'): ?>
             <li>
-                <a href="/TechFixPHP/pages/technical/tech_schedule.php">
+                <a href="/TechFixPHP/pages/admin/tech_schedule.php">
                     📅 Lịch làm việc
                 </a>
             </li>
             <li>
-                <a href="/TechFixPHP/pages/technical/tech_history.php">
+                <a href="/TechFixPHP/pages/admin/tech_history.php">
                     📚 Lịch sử công việc
+                </a>
+            </li>
+            <li>
+                <a href="/TechFixPHP/pages/admin/technician_upload.php">
+                    📤 Tải ảnh công việc
                 </a>
             </li>
         <?php endif; ?>

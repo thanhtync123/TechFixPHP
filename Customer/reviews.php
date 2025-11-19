@@ -9,7 +9,7 @@ if (!isset($_SESSION['user']) || $_SESSION['role'] !== 'customer') {
 }
 
 $customer_id = $_SESSION['user']['id'];
-$booking_id = $_GET['booking_id'] ?? 0;
+$booking_id = $_GET['booking_id'] ?? ($_GET['order_id'] ?? 0);
 
 // ✅ Kiểm tra đơn hàng hợp lệ & thuộc khách hàng này
 $query = "SELECT * FROM bookings WHERE id = ? AND customer_id = ? AND status = 'completed'";

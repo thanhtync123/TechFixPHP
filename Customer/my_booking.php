@@ -2,8 +2,8 @@
 session_start();
 
 // 🔒 Kiểm tra đăng nhập và quyền
-if (!isset($_SESSION['user']) || $_SESSION['role'] !== 'customer') {
-    header("Location: /TechFixPHP/page/public_page/admin/login.php");
+if (!isset($_SESSION['user']) || ($_SESSION['role'] ?? null) !== 'customer') {
+    header("Location: /TechFixPHP/pages/public_page/login.php");
     exit();
 }
 
@@ -15,11 +15,14 @@ $customer_id = $user['id'] ?? null;
 $result = false;
 
 if ($customer_id && isset($conn)) {
+    // ===== THAY ĐỔI 1: Thêm 'b.final_price' vào câu SELECT =====
+    // (Giả sử cột giá của bạn trong bảng 'bookings' tên là 'final_price')
     $query = "
         SELECT 
             b.id, 
             s.name AS service_name, 
             b.appointment_time, 
+            b.final_price,  
             b.status, 
             b.created_at
         FROM bookings b
@@ -69,12 +72,10 @@ th{background:#0099ff;color:#fff}
 </head>
 <body>
 
-<!-- 🔔 Chuông thông báo -->
 <div id="notificationBell">
     🔔 <span class="badge" id="notificationCount">0</span>
 </div>
 
-<!-- Popup danh sách thông báo -->
 <div id="notificationPopup">
     <ul class="list" id="notificationList">
         <li>Đang tải...</li>
@@ -91,6 +92,7 @@ th{background:#0099ff;color:#fff}
                     <th>#</th>
                     <th>Tên dịch vụ</th>
                     <th>Ngày hẹn</th>
+                    <th>Chi phí</th>
                     <th>Trạng thái</th>
                     <th>Ngày đặt</th>
                     <th>Chi tiết</th>
@@ -103,6 +105,11 @@ th{background:#0099ff;color:#fff}
                         <td><?= $i++ ?></td>
                         <td><?= htmlspecialchars($row['service_name']) ?></td>
                         <td><?= date('d/m/Y', strtotime($row['appointment_time'])) ?></td>
+                        
+                        <td style="color: #d9534f; font-weight: bold;">
+                            <?= number_format($row['final_price'], 0, ',', '.') ?>đ
+                        </td>
+
                         <td>
                             <span class="status <?= $row['status'] ?>">
                                 <?= ucfirst($row['status']) ?>
@@ -114,7 +121,7 @@ th{background:#0099ff;color:#fff}
                         </td>
                         <td>
                             <?php if ($row['status'] === 'completed'): ?>
-                                <a href="reviews.php?order_id=<?= $row['id'] ?>" style="color:#ff9800;">⭐ Đánh giá</a>
+                                <a href="reviews.php?booking_id=<?= $row['id'] ?>" style="color:#ff9800;">⭐ Đánh giá</a>
                             <?php else: ?>
                                 <span style="color:#aaa;">---</span>
                             <?php endif; ?>

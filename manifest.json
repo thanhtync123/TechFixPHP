@@ -1,0 +1,21 @@
+{
+  "name": "TechFix - Đặt lịch sửa chữa",
+  "short_name": "TechFix",
+"start_url": "/TechFixPHP/index.php",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#0d6efd",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/TechFixPHP/assets/image/vlute2.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/TechFixPHP/assets/image/phone.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

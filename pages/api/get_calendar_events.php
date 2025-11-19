@@ -1,5 +1,11 @@
 <?php
 // /pages/api/get_calendar_events.php
+session_start();
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+    http_response_code(403);
+    echo json_encode([]);
+    exit;
+}
 header('Content-Type: application/json');
 include "../../config/db.php"; // Đảm bảo đường dẫn đúng
 

@@ -1,4 +1,9 @@
 <?php
+session_start();
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+    http_response_code(403);
+    die("Không có quyền.");
+}
 include '../../config/db.php';
 
 // Kiểm tra kết nối

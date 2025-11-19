@@ -1,79 +1,93 @@
 <?php
-
-include '../../config/db.php';
-include 'template/sidebar.php';
-
 session_start();
+include '../../config/db.php';
 
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     header('Location: /TechFixPHP/pages/public_page/login.php');
     exit;
 }
-include __DIR__ . '/template/sidebar.php';
-
-
-// Simple admin auth check (adjust to your auth system)
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
-  header('Location: /TechFixPHP/pages/public_page/login.php');
-  exit;
-}
-
 
 $msg = '';
-$msgType = ''; 
+$msgType = '';
 if (isset($_GET['msg'])) {
-    $msg = $_GET['msg'];
+    $msg = htmlspecialchars($_GET['msg'], ENT_QUOTES, 'UTF-8');
     $msgType = 'success';
 }
-if (isset($_POST['save'])) {
-    $id = intval($_POST['id']); 
-    $name = $_POST['name'];
-    $phone = $_POST['phone'];
-    $password = $_POST['password'];
-    $address = $_POST['address'];
-    $role = $_POST['role'];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
+    $id = intval($_POST['id']);
+    $name = trim($_POST['name'] ?? '');
+    $phone = trim($_POST['phone'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $address = trim($_POST['address'] ?? '');
+    $role = $_POST['role'] ?? 'customer';
 
     if ($id > 0) {
-        $query = "UPDATE users 
-                  SET name='$name', phone='$phone', password='$password', 
-                      address='$address', role='$role', updated_at=NOW()
-                  WHERE id=$id";
-        mysqli_query($conn, $query);
+        if ($password !== '') {
+            $hashed = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $conn->prepare("UPDATE users SET name = ?, phone = ?, password = ?, address = ?, role = ?, updated_at = NOW() WHERE id = ?");
+            $stmt->bind_param('sssssi', $name, $phone, $hashed, $address, $role, $id);
+        } else {
+            $stmt = $conn->prepare("UPDATE users SET name = ?, phone = ?, address = ?, role = ?, updated_at = NOW() WHERE id = ?");
+            $stmt->bind_param('ssssi', $name, $phone, $address, $role, $id);
+        }
+        $stmt->execute();
+        $stmt->close();
         header("Location: users.php?msg=" . urlencode("✏️ Đã cập nhật người dùng #$id thành công!"));
         exit;
     } else {
-        $query = "INSERT INTO users(name, phone, password, address, role)
-                  VALUES ('$name', '$phone', '$password', '$address', '$role')";
-        mysqli_query($conn, $query);
-        header("Location: users.php?msg=" . urlencode("✅ Đã thêm người dùng mới thành công!"));
-        exit;
-    }
-}
-if (isset($_GET['delete'])) {
-    $id = intval($_GET['delete']);
-    try {
-        mysqli_query($conn, "DELETE FROM users WHERE id = $id");
-        $msg = "🗑️ Đã xoá người dùng #$id thành công!";
-        $msgType = 'success';
-    } catch (mysqli_sql_exception $e) {
-        $err = $e->getMessage();
-        if (str_contains($err, 'foreign key constraint')) {
-            $msg = "⚠️ Không thể xoá người dùng #$id vì đang được sử dụng ở bảng khác!";
-            $msgType = 'warning';
-        } else {
-            $msg = "❌ Lỗi khi xoá người dùng: " . $err;
+        if ($password === '') {
+            $msg = "❌ Vui lòng nhập mật khẩu.";
             $msgType = 'error';
+        } else {
+            $hashed = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $conn->prepare("INSERT INTO users (name, phone, password, address, role) VALUES (?, ?, ?, ?, ?)");
+            $stmt->bind_param('sssss', $name, $phone, $hashed, $address, $role);
+            $stmt->execute();
+            $newId = $stmt->insert_id;
+            $stmt->close();
+            header("Location: users.php?msg=" . urlencode("✅ Đã thêm người dùng mới thành công! (ID #{$newId})"));
+            exit;
         }
     }
 }
 
-$edit = ['id'=>0,'name'=>'','phone'=>'','password'=>'','address'=>'','role'=>''];
+if (isset($_GET['delete'])) {
+    $id = intval($_GET['delete']);
+    $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
+    $stmt->bind_param('i', $id);
+    try {
+        $stmt->execute();
+        $msg = "🗑️ Đã xoá người dùng #$id thành công!";
+        $msgType = 'success';
+    } catch (mysqli_sql_exception $e) {
+        if (str_contains($e->getMessage(), 'foreign key constraint')) {
+            $msg = "⚠️ Không thể xoá người dùng #$id vì đang được sử dụng ở bảng khác!";
+            $msgType = 'warning';
+        } else {
+            $msg = "❌ Lỗi khi xoá người dùng: " . $e->getMessage();
+            $msgType = 'error';
+        }
+    }
+    $stmt->close();
+}
+
+$edit = ['id'=>0,'name'=>'','phone'=>'','password'=>'','address'=>'','role'=>'customer'];
 if (isset($_GET['edit'])) {
     $id = intval($_GET['edit']);
-    $result = mysqli_query($conn, "SELECT * FROM users WHERE id=$id");
-    $edit = mysqli_fetch_assoc($result);
+    $stmt = $conn->prepare("SELECT id, name, phone, address, role FROM users WHERE id = ?");
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($row = $result->fetch_assoc()) {
+        $edit = $row + ['password' => ''];
+    }
+    $stmt->close();
 }
+
 $result = mysqli_query($conn, "SELECT * FROM users ORDER BY id DESC");
+
+include __DIR__ . '/template/sidebar.php';
 ?>
 <link href="/TechFixPHP/assets/css/users.css" rel="stylesheet">
 <main class="p-4">

@@ -38,9 +38,8 @@ if ($stmt->num_rows > 0) {
 }
 $stmt->close();
 
-// 4. Băm mật khẩu (Tốt nhất là dùng, nhưng tôi tôn trọng lựa chọn của bạn)
-// $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-$hashed_password = $password; // (Theo yêu cầu "không băm" của bạn)
+// 4. Băm mật khẩu
+$hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
 
 // 5. Thêm người dùng mới (Thêm email)
