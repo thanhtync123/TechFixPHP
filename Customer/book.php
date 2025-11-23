@@ -7,7 +7,6 @@ if (!isset($_SESSION['user']) || ($_SESSION['role'] ?? null) !== 'customer') {
     exit();
 }
 
-
 $user_session = $_SESSION['user'] ?? null; 
 $customer_id = $user_session['id'] ?? ''; 
 $customer_name = $user_session['name'] ?? ''; 
@@ -26,12 +25,13 @@ try {
 
 $provinces = [];
 try {
-    $result_provinces = $conn->query("SELECT id, name FROM provinces ORDER BY name ASC");
+    // Lấy province_code để khớp với bảng districts
+    $result_provinces = $conn->query("SELECT province_code, name FROM provinces ORDER BY name ASC");
     if ($result_provinces) {
         $provinces = $result_provinces->fetch_all(MYSQLI_ASSOC); 
     }
 } catch (Exception $e) {
-    error_log("Lỗi lấy provinces (book.php): " . $e->getMessage());
+    error_log("Lỗi lấy provinces: " . $e->getMessage());
 }
 ?>
 <!DOCTYPE html>
@@ -41,6 +41,8 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đặt Lịch Thông Minh - TECHFIX</title>
     <link href="/TechFixPHP/assets/css/book.css" rel="stylesheet" />
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
         .toast { position: fixed; bottom: 20px; right: 20px; background: #333; color: #fff; padding: 1rem 1.5rem; border-radius: 8px; opacity: 0; transition: opacity 0.4s; z-index: 9999; }
@@ -132,7 +134,7 @@ try {
                         <select id="provinceId" class="form-control" onchange="loadDistricts()" required>
                             <option value="">-- Chọn Tỉnh/Thành --</option>
                             <?php foreach ($provinces as $province): ?>
-                                <option value="<?php echo $province['id']; ?>">
+                                <option value="<?php echo $province['province_code']; ?>">
                                     <?php echo htmlspecialchars($province['name']); ?>
                                 </option>
                             <?php endforeach; ?>
@@ -207,7 +209,7 @@ try {
                 </div>
             </section>
         </div>
-        </div> 
+    </div> 
     
     <div class="footer">
         <div>
@@ -238,10 +240,10 @@ try {
             </div>
         </div>
     </div>
+
     <script>
-    // ============== HIỂN THỊ TOAST (THÔNG BÁO) ==============
+    // ============== HIỂN THỊ TOAST (GIỮ LẠI CHO AI MODAL) ==============
     function showToast(message, isError = false) {
-        // (Code hàm này giữ nguyên)
         const toast = document.getElementById("toast");
         toast.textContent = message;
         toast.style.background = isError ? "#d9534f" : "#28a745";
@@ -251,7 +253,6 @@ try {
 
     // ============== TẢI DANH SÁCH QUẬN/HUYỆN ==============
     function loadDistricts() {
-        // (Code hàm này giữ nguyên)
         const provinceId = document.getElementById('provinceId').value;
         const districtSelect = document.getElementById('district');
         districtSelect.innerHTML = '<option value="">-- Đang tải... --</option>';
@@ -284,7 +285,6 @@ try {
 
     // ============== LOGIC BÁO GIÁ THÔNG MINH ==============
     function getSmartPrice() {
-        // (Code hàm này giữ nguyên)
         const serviceId = document.getElementById('serviceId').value;
         const district = document.getElementById('district').value; 
         const date = document.getElementById('appointmentDate').value;
@@ -330,9 +330,8 @@ try {
             });
     }
 
-    // ============== HÀM GỬI ĐƠN ĐẶT LỊCH ==============
+    // ============== HÀM GỬI ĐƠN ĐẶT LỊCH (PHIÊN BẢN SWEETALERT2) ==============
     function bookSlot(time, price) {
-        // (Code hàm này giữ nguyên)
         const idCustomer = document.getElementById('idCustomer').value;
         const customerName = document.getElementById('customerName').value;
         const phone = document.getElementById('phone').value;
@@ -340,46 +339,91 @@ try {
         const serviceId = document.getElementById('serviceId').value;
         const district = document.getElementById('district').value; 
         const date = document.getElementById('appointmentDate').value;
+
+        // 1. Validate dữ liệu
         if (!idCustomer || !customerName || !phone || !address) {
-            showToast("Vui lòng điền đầy đủ thông tin ở Bước 1.", true);
+            Swal.fire({
+                icon: 'warning',
+                title: 'Thiếu thông tin',
+                text: 'Vui lòng điền đầy đủ thông tin ở Bước 1.',
+                confirmButtonColor: '#f39c12'
+            });
             document.getElementById('customerName').focus();
             return;
         }
-        if (!confirm(`Xác nhận đặt lịch lúc ${time} với giá ${price.toLocaleString('vi-VN')}đ?`)) return;
-        const bookingData = { IdCustomer: idCustomer, CustomerName: customerName, Phone: phone, Address: address, District: district, ServiceId: serviceId, AppointmentDate: date, AppointmentTime: time, FinalPrice: price };
-        fetch('submit_booking.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(bookingData)
-        })
-        .then(response => response.json())
-        .then(result => {
-            if (result.success) {
-                showToast(result.message);
-                getSmartPrice(); 
-            } else {
-                showToast(result.message, true);
+
+        // 2. HIỆN POPUP XÁC NHẬN
+        Swal.fire({
+            title: 'Xác nhận đặt lịch?',
+            html: `Bạn muốn đặt lịch lúc <b>${time}</b><br>với giá ước tính: <b style="color:green; font-size: 1.2em;">${price.toLocaleString('vi-VN')}đ</b>?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Đồng ý đặt',
+            cancelButtonText: 'Hủy bỏ',
+            background: '#fff'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                
+                // Hiện loading
+                Swal.fire({
+                    title: 'Đang xử lý...',
+                    text: 'Vui lòng chờ trong giây lát',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                const bookingData = { IdCustomer: idCustomer, CustomerName: customerName, Phone: phone, Address: address, District: district, ServiceId: serviceId, AppointmentDate: date, AppointmentTime: time, FinalPrice: price };
+                
+                fetch('submit_booking.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bookingData)
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Thành công!',
+                            text: result.message,
+                            showConfirmButton: true,
+                            confirmButtonText: 'OK',
+                            timer: 5000
+                        });
+                        getSmartPrice(); // Cập nhật lại lịch
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Có lỗi xảy ra',
+                            text: result.message
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Lỗi khi gửi:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi kết nối',
+                        text: 'Không thể gửi đơn đặt lịch. Vui lòng thử lại.'
+                    });
+                });
             }
-        })
-        .catch(error => {
-            console.error('Lỗi khi gửi:', error);
-            showToast("Không thể gửi đơn đặt lịch.", true);
         });
     }
 
     // ============== HÀM MỚI: MỞ/ĐÓNG MODAL CHẨN ĐOÁN AI ==============
     function openAIDiagnoseModal() {
         const modal = document.getElementById('aiDiagnoseModal');
-        modal.style.display = 'flex'; // Hiển thị modal
+        modal.style.display = 'flex'; 
 
-        // 1. Tải HTML của modal
         fetch('ai_diagnose_modal.php')
             .then(response => response.text())
             .then(html => {
-                // 2. Đưa HTML vào modal
                 document.getElementById('aiDiagnoseContent').innerHTML = html;
-                
-                // 3. (SỬA LỖI) Chạy JavaScript để gán sự kiện cho modal
                 setupAIDiagnoseModal(); 
             })
             .catch(error => {
@@ -390,10 +434,9 @@ try {
 
     function closeAIDiagnoseModal() {
         const modal = document.getElementById('aiDiagnoseModal');
-        modal.style.display = 'none'; // Ẩn modal
+        modal.style.display = 'none'; 
     }
 
-    // Đóng modal khi click ra ngoài
     window.onclick = function(event) {
         const modal = document.getElementById('aiDiagnoseModal');
         if (event.target == modal) {
@@ -401,9 +444,7 @@ try {
         }
     }
     
-    // (SỬA LỖI) HÀM NÀY CHỨA TOÀN BỘ JS CỦA MODAL
     function setupAIDiagnoseModal() {
-        // Lấy các element bên trong modal (sau khi chúng được tải)
         const aiFileUpload = document.getElementById('aiFileUpload');
         const uploadArea = document.getElementById('uploadArea');
         const previewArea = document.getElementById('previewArea');
@@ -411,18 +452,15 @@ try {
         const loadingSpinner = document.getElementById('loadingSpinner');
         const diagnosisResult = document.getElementById('diagnosisResult');
 
-        // Nếu không tìm thấy (lỗi), thì dừng lại
         if (!uploadArea || !aiFileUpload || !previewArea || !diagnoseButton || !loadingSpinner || !diagnosisResult) {
              console.error('Không thể khởi tạo các element của AI modal.');
              return;
         }
 
-        // === GÁN SỰ KIỆN CLICK CHO VÙNG TẢI LÊN ===
         uploadArea.addEventListener('click', () => {
-            aiFileUpload.click(); // Mở cửa sổ chọn file
+            aiFileUpload.click(); 
         });
 
-        // Xử lý khi đã chọn file
         aiFileUpload.addEventListener('change', (event) => {
             const file = event.target.files[0];
             if (file) {
@@ -456,7 +494,6 @@ try {
             }
         });
 
-        // Xử lý khi nhấn nút "Chẩn đoán"
         diagnoseButton.addEventListener('click', async () => {
             const file = aiFileUpload.files[0];
             if (!file) {
@@ -473,7 +510,6 @@ try {
             formData.append('media_file', file);
 
             try {
-                // Gửi file đến API backend
                 const response = await fetch('api_ai_diagnose.php', {
                     method: 'POST',
                     body: formData
@@ -506,20 +542,16 @@ try {
         });
     }
 
-
-    // ============== HÀM ĐỂ LIÊN KẾT MODAL VỚI FORM ==============
     function selectDiagnosedService(serviceId) {
-        document.getElementById('serviceId').value = serviceId; // Cập nhật dropdown
-        closeAIDiagnoseModal(); // Đóng modal
-        getSmartPrice(); // Tự động cập nhật báo giá
+        document.getElementById('serviceId').value = serviceId; 
+        closeAIDiagnoseModal(); 
+        getSmartPrice(); 
         showToast("Dịch vụ đã được chọn tự động bởi AI!");
         document.getElementById('serviceId').focus();
     }
 
-    // ============== HÀM KHỞI TẠO KHI TRANG TẢI ==============
     document.addEventListener("DOMContentLoaded", () => {
         
-        // --- 1. LOGIC CỦA SLIDER ---
         const track = document.getElementById("slideTrack");
         const slides = track ? track.children : [];
         const prevBtn = document.getElementById("prevBtn");
@@ -559,7 +591,6 @@ try {
             showSlide(0); 
         }
         
-        // --- 2. LOGIC CỦA FORM ĐẶT LỊCH ---
         const today = new Date().toISOString().split('T')[0];
         const dateInput = document.getElementById('appointmentDate');
         if (dateInput) { 

@@ -1,4 +1,5 @@
 <?php
+// File: /TechFixPHP/Customer/my_booking.php
 session_start();
 
 // 🔒 Kiểm tra đăng nhập và quyền
@@ -15,8 +16,7 @@ $customer_id = $user['id'] ?? null;
 $result = false;
 
 if ($customer_id && isset($conn)) {
-    // ===== THAY ĐỔI 1: Thêm 'b.final_price' vào câu SELECT =====
-    // (Giả sử cột giá của bạn trong bảng 'bookings' tên là 'final_price')
+    // ===== CẬP NHẬT SQL: Lấy thêm lat, lng để check bản đồ =====
     $query = "
         SELECT 
             b.id, 
@@ -24,7 +24,9 @@ if ($customer_id && isset($conn)) {
             b.appointment_time, 
             b.final_price,  
             b.status, 
-            b.created_at
+            b.created_at,
+            b.lat, 
+            b.lng
         FROM bookings b
         JOIN services s ON b.service_id = s.id
         WHERE b.customer_id = ?
@@ -68,6 +70,24 @@ th{background:#0099ff;color:#fff}
 .no-booking{text-align:center;padding:30px;color:#777;font-size:16px}
 .detail-link{color:#0099ff;text-decoration:none;font-weight:500}
 .detail-link:hover{text-decoration:underline}
+/* Button bản đồ */
+.map-btn {
+    display: inline-block;
+    margin-top: 5px;
+    padding: 4px 8px;
+    background-color: #e7f1ff;
+    color: #0d6efd;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: bold;
+    border: 1px solid #0d6efd;
+    transition: 0.3s;
+}
+.map-btn:hover {
+    background-color: #0d6efd;
+    color: white;
+}
 </style>
 </head>
 <body>
@@ -84,6 +104,7 @@ th{background:#0099ff;color:#fff}
 
 <div class="container">
     <h2>📅 Lịch đặt dịch vụ của tôi</h2>
+<a href="/TechFixPHP/index.php" class="back-home">🏠 Quay lại trang chủ</a>
 
     <?php if ($result && $result->num_rows > 0): ?>
         <table>
@@ -95,8 +116,7 @@ th{background:#0099ff;color:#fff}
                     <th>Chi phí</th>
                     <th>Trạng thái</th>
                     <th>Ngày đặt</th>
-                    <th>Chi tiết</th>
-                    <th>Đánh giá</th>
+                    <th>Chi tiết & Map</th> <th>Đánh giá</th>
                 </tr>
             </thead>
             <tbody>
@@ -117,11 +137,18 @@ th{background:#0099ff;color:#fff}
                         </td>
                         <td><?= date('d/m/Y H:i', strtotime($row['created_at'])) ?></td>
                         <td>
-                            <a href="booking_detail.php?id=<?= $row['id'] ?>" class="detail-link">Xem</a>
+                            <a href="booking_detail.php?id=<?= $row['id'] ?>" class="detail-link">Xem đơn</a>
+                            
+                            <?php if (!empty($row['lat']) && !empty($row['lng'])): ?>
+                                <br>
+                                <a href="/TechFixPHP/view_map.php?id=<?= $row['id'] ?>" target="_blank" class="map-btn">
+                                    📍 Theo dõi lộ trình
+                                </a>
+                            <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($row['status'] === 'completed'): ?>
-                                <a href="reviews.php?booking_id=<?= $row['id'] ?>" style="color:#ff9800;">⭐ Đánh giá</a>
+                                <a href="reviews.php?booking_id=<?= $row['id'] ?>" style="color:#ff9800; text-decoration: none;">⭐ Đánh giá</a>
                             <?php else: ?>
                                 <span style="color:#aaa;">---</span>
                             <?php endif; ?>

@@ -1,117 +1,121 @@
 <?php
+// pages/admin/fetch_schedule.php
 session_start();
+
+// 1. Check quyền
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
-    http_response_code(403);
-    die("Không có quyền.");
-}
-include '../../config/db.php';
-
-// Kiểm tra kết nối
-if (!$conn) {
-    die("<p style='color:red;'>Kết nối CSDL thất bại.</p>");
-}
-
-// Kiểm tra có truyền ID kỹ thuật viên hay không
-if (!isset($_GET['technician_id'])) {
-    echo "<p style='color:red;'>Thiếu ID kỹ thuật viên.</p>";
+    echo '<p class="text-danger text-center">Không có quyền truy cập.</p>';
     exit;
 }
 
-$tech_id = intval($_GET['technician_id']);
+require_once '../../config/db.php';
 
-// Lấy danh sách lịch làm việc của kỹ thuật viên
-$query = "
-    SELECT 
-        ts.id,
-        u.name AS technician_name,
-        ts.date,
-        ts.start_time,
-        ts.end_time,
-        ts.status
-    FROM technician_schedule ts
-    JOIN users u ON ts.technician_id = u.id
-    WHERE ts.technician_id = ?
-    ORDER BY ts.date ASC, ts.start_time ASC
-";
+$tech_id = isset($_GET['technician_id']) ? intval($_GET['technician_id']) : 0;
 
-$stmt = $conn->prepare($query);
-if (!$stmt) {
-    die("<p style='color:red;'>Lỗi truy vấn: " . htmlspecialchars($conn->error) . "</p>");
-}
-
-$stmt->bind_param("i", $tech_id);
-$stmt->execute();
-$result = $stmt->get_result();
-
-if ($result->num_rows === 0) {
-    echo "<p style='color:#777;text-align:center;'>Không có lịch làm việc nào.</p>";
+if ($tech_id == 0) {
+    echo '<div class="text-center py-5 text-muted">
+            <i class="fa-solid fa-user-clock fa-3x mb-3 opacity-25"></i>
+            <p>Vui lòng chọn kỹ thuật viên để xem lịch trình.</p>
+          </div>';
     exit;
 }
 
-echo "
-<style>
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-    font-family: Arial, sans-serif;
+// 2. HÀM LẤY LỊCH TỪ BẢNG BOOKINGS
+function getScheduleByDate($conn, $tech_id, $date) {
+    // Lấy các đơn hàng đã Confirm hoặc Processing hoặc Completed
+    // (Tức là thợ đó đã bị book vào giờ đó)
+    $sql = "
+        SELECT 
+            b.id, 
+            b.appointment_time, 
+            s.name as service_name, 
+            b.status
+        FROM bookings b
+        LEFT JOIN services s ON b.service_id = s.id
+        WHERE 
+            b.technician_id = ? 
+            AND DATE(b.appointment_time) = ?
+            AND b.status IN ('confirmed', 'processing', 'completed')
+        ORDER BY b.appointment_time ASC
+    ";
+    
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("is", $tech_id, $date);
+    $stmt->execute();
+    return $stmt->get_result();
 }
-thead {
-    background: #007bff;
-    color: white;
-}
-th, td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: center;
-}
-tbody tr:nth-child(even) {
-    background: #f9f9f9;
-}
-.status {
-    padding: 4px 8px;
-    border-radius: 6px;
-    color: white;
-    font-weight: bold;
-}
-.status.available { background-color: #28a745; }  /* Rảnh */
-.status.busy { background-color: #ffc107; }       /* Bận */
-.status.off { background-color: #dc3545; }        /* Nghỉ */
-.date-group {
-    background: #eee;
-    font-weight: bold;
-    text-align: left;
-    padding: 8px;
-}
-</style>
-";
 
-// Nhóm lịch theo ngày
-$currentDate = '';
-while ($row = $result->fetch_assoc()) {
-    $date = date('d/m/Y', strtotime($row['date']));
-    if ($date !== $currentDate) {
-        if ($currentDate !== '') echo "</tbody></table><br>";
-        echo "<div class='date-group'>📅 Ngày: $date</div>";
-        echo "<table><thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Tên kỹ thuật viên</th>
-                    <th>Giờ bắt đầu</th>
-                    <th>Giờ kết thúc</th>
-                    <th>Trạng thái</th>
-                </tr>
-              </thead><tbody>";
-        $currentDate = $date;
-    }
+// 3. XỬ LÝ HIỂN THỊ CHO 2 NGÀY (Hôm nay & Ngày mai)
+$dates = [
+    'Hôm nay' => date('Y-m-d'),
+    'Ngày mai' => date('Y-m-d', strtotime('+1 day'))
+];
 
-    echo "<tr>
-            <td>{$row['id']}</td>
-            <td>" . htmlspecialchars($row['technician_name']) . "</td>
-            <td>" . date('H:i', strtotime($row['start_time'])) . "</td>
-            <td>" . date('H:i', strtotime($row['end_time'])) . "</td>
-            <td><span class='status {$row['status']}'>" . ucfirst($row['status']) . "</span></td>
-          </tr>";
-}
-echo "</tbody></table>";
 ?>
+
+<div class="schedule-container">
+    <?php foreach ($dates as $label => $date): ?>
+        <?php 
+            $result = getScheduleByDate($conn, $tech_id, $date);
+            $displayDate = date('d/m/Y', strtotime($date));
+            $isToday = ($label == 'Hôm nay');
+            $cardClass = $isToday ? 'border-primary' : 'border-light';
+            $headerClass = $isToday ? 'bg-primary text-white' : 'bg-light text-dark';
+        ?>
+        
+        <div class="card mb-3 shadow-sm <?= $cardClass ?>">
+            <div class="card-header <?= $headerClass ?> fw-bold d-flex justify-content-between align-items-center">
+                <span><i class="fa-regular fa-calendar"></i> <?= $label ?> (<?= $displayDate ?>)</span>
+                <?php if($result->num_rows > 0): ?>
+                    <span class="badge bg-warning text-dark"><?= $result->num_rows ?> ca</span>
+                <?php else: ?>
+                    <span class="badge bg-success">Rảnh</span>
+                <?php endif; ?>
+            </div>
+
+            <div class="card-body p-0">
+                <?php if ($result->num_rows > 0): ?>
+                    <table class="table table-striped mb-0 text-center table-sm" style="font-size: 0.9rem;">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Giờ</th>
+                                <th>Mã Đơn</th>
+                                <th class="text-start">Công việc</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php while ($row = $result->fetch_assoc()): ?>
+                                <?php 
+                                    $start = date('H:i', strtotime($row['appointment_time']));
+                                    // Giả định mỗi ca làm 2 tiếng
+                                    $end = date('H:i', strtotime($row['appointment_time'] . ' +2 hours'));
+                                ?>
+                                <tr>
+                                    <td class="fw-bold text-primary">
+                                        <?= $start ?> - <?= $end ?>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">#<?= $row['id'] ?></span>
+                                    </td>
+                                    <td class="text-start text-truncate" style="max-width: 150px;" title="<?= htmlspecialchars($row['service_name']) ?>">
+                                        <?= htmlspecialchars($row['service_name']) ?>
+                                    </td>
+                                </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                <?php else: ?>
+                    <div class="text-center py-4 text-muted">
+                        <i class="fa-regular fa-face-smile mb-2" style="font-size: 2rem; opacity: 0.3;"></i>
+                        <p class="mb-0 small">Không có lịch bận. Có thể gán đơn.</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    <?php endforeach; ?>
+    
+    <div class="alert alert-info small mt-3 mb-0">
+        <i class="fa-solid fa-circle-info"></i> 
+        Hệ thống hiển thị các khung giờ thợ <b>đã có đơn</b>. Các giờ còn lại được coi là rảnh.
+    </div>
+</div>

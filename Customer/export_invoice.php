@@ -1,22 +1,14 @@
 <?php
-// File: /TechFixPHP/Customer/export_invoice.php
 session_start();
 require_once '../config/db.php';
-
-// Định nghĩa đường dẫn font
-define('FPDF_FONTPATH', __DIR__ . '/../libs/fpdf/font/');
 require_once '../libs/fpdf/fpdf.php'; 
 
 // 1. Kiểm tra quyền
-if (!isset($_SESSION['user'])) {
-    die("Vui lòng đăng nhập");
-}
+if (!isset($_SESSION['user'])) die("Vui lòng đăng nhập");
 
 $booking_id = $_GET['id'] ?? 0;
 
-// 2. Lấy thông tin đơn hàng (CÂU SQL ĐÃ CHỈNH CHUẨN THEO ẢNH CSDL)
-// - u.name AS full_name: Lấy cột 'name' nhưng đặt tên giả là 'full_name'
-// - u.phone AS phone_number: Lấy cột 'phone' nhưng đặt tên giả là 'phone_number'
+// 2. Lấy thông tin đơn hàng
 $sql = "SELECT b.*, s.name as service_name, u.name as full_name, u.phone as phone_number, u.address 
         FROM bookings b 
         JOIN services s ON b.service_id = s.id 
@@ -28,9 +20,9 @@ $stmt->bind_param("i", $booking_id);
 $stmt->execute();
 $booking = $stmt->get_result()->fetch_assoc();
 
-if (!$booking) die("Không tìm thấy đơn hàng hoặc lỗi truy vấn");
+if (!$booking) die("Không tìm thấy đơn hàng");
 
-// Hàm chuyển đổi Tiếng Việt có dấu -> Không dấu
+// Hàm convert Tiếng Việt (Giữ nguyên của bạn)
 function convertToUnsigned($str) {
     if (!$str) return "";
     $str = preg_replace("/(à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ)/", "a", $str);
@@ -50,20 +42,31 @@ function convertToUnsigned($str) {
     return $str;
 }
 
-// 3. Tạo PDF
 class PDF extends FPDF {
     function Header() {
-        $this->SetFont('Arial','B',20);
-        $this->SetTextColor(0, 123, 255); 
-        $this->Cell(0,10,'TECHFIX - HOA DON DIEN TU',0,1,'C');
-        $this->Ln(5);
+        // Logo (Thay đường dẫn ảnh của bạn vào đây)
+        // $this->Image('../assets/image/vlute1.png',10,6,30);
+        
+        // Tên công ty
+        $this->SetFont('Arial','B',24);
+        $this->SetTextColor(13, 110, 253); // Màu xanh Bootstrap
+        $this->Cell(0, 15, 'TECHFIX', 0, 1, 'C');
+        
+        $this->SetFont('Arial','',10);
+        $this->SetTextColor(100);
+        $this->Cell(0, 5, '73 Nguyen Hue, Vinh Long - Hotline: 1900 1234', 0, 1, 'C');
+        
+        // Đường kẻ ngang
+        $this->SetDrawColor(200, 200, 200);
+        $this->Line(10, 35, 200, 35);
+        $this->Ln(15);
     }
 
     function Footer() {
         $this->SetY(-15);
         $this->SetFont('Arial','I',8);
-        $this->SetTextColor(128);
-        $this->Cell(0,10,'Trang '.$this->PageNo().'/{nb}',0,0,'C');
+        $this->SetTextColor(150);
+        $this->Cell(0,10,'Page '.$this->PageNo().'/{nb}',0,0,'C');
     }
 }
 
@@ -71,62 +74,89 @@ $pdf = new PDF();
 $pdf->AliasNbPages();
 $pdf->AddPage();
 
-// --- THÔNG TIN ĐƠN HÀNG ---
-$pdf->SetFont('Arial','',12);
+// --- TIÊU ĐỀ HÓA ĐƠN ---
+$pdf->SetFont('Arial','B',18);
+$pdf->SetTextColor(50);
+$pdf->Cell(0, 10, 'HOA DON THANH TOAN', 0, 1, 'C');
+$pdf->Ln(5);
+
+// --- BOX THÔNG TIN ĐƠN HÀNG (Khung xám nhạt) ---
+$pdf->SetFillColor(245, 245, 245);
+$pdf->Rect(10, 60, 190, 35, 'F'); // Vẽ hình chữ nhật nền
+
+$pdf->SetY(65);
+$pdf->SetX(15);
+
+$pdf->SetFont('Arial','B',11);
+$pdf->Cell(40, 8, 'Ma Don Hang:', 0, 0);
+$pdf->SetFont('Arial','',11);
+$pdf->Cell(60, 8, '#' . $booking['id'], 0, 0);
+
+$pdf->SetFont('Arial','B',11);
+$pdf->Cell(40, 8, 'Ngay Lap:', 0, 0);
+$pdf->SetFont('Arial','',11);
+$pdf->Cell(50, 8, date('d/m/Y H:i'), 0, 1);
+
+$pdf->SetX(15);
+$pdf->SetFont('Arial','B',11);
+$pdf->Cell(40, 8, 'Khach Hang:', 0, 0);
+$pdf->SetFont('Arial','',11);
+$pdf->Cell(60, 8, convertToUnsigned($booking['full_name']), 0, 0);
+
+$pdf->SetFont('Arial','B',11);
+$pdf->Cell(40, 8, 'Trang Thai:', 0, 0);
+
+// Logic thanh toán đã sửa
+$is_paid = ($booking['payment_status'] == 'paid') || ($booking['status'] == 'completed');
+$payment_text = $is_paid ? 'DA THANH TOAN' : 'CHUA THANH TOAN';
+$color = $is_paid ? [40, 167, 69] : [220, 53, 69]; // Xanh hoặc Đỏ
+
+$pdf->SetTextColor($color[0], $color[1], $color[2]);
+$pdf->SetFont('Arial','B',11);
+$pdf->Cell(50, 8, $payment_text, 0, 1);
+
+$pdf->SetTextColor(0); // Reset màu đen
+$pdf->Ln(15);
+
+// --- BẢNG CHI TIẾT ---
+// Header bảng
+$pdf->SetFont('Arial','B',11);
+$pdf->SetFillColor(13, 110, 253); // Xanh đậm
+$pdf->SetTextColor(255); // Chữ trắng
+$pdf->Cell(10, 10, 'STT', 1, 0, 'C', true);
+$pdf->Cell(90, 10, 'Mo Ta Dich Vu', 1, 0, 'C', true);
+$pdf->Cell(30, 10, 'So Luong', 1, 0, 'C', true);
+$pdf->Cell(30, 10, 'Don Gia', 1, 0, 'C', true);
+$pdf->Cell(30, 10, 'Thanh Tien', 1, 1, 'C', true);
+
+// Dữ liệu bảng
+$pdf->SetFont('Arial','',11);
 $pdf->SetTextColor(0);
+$pdf->SetFillColor(255, 255, 255); // Nền trắng
 
-$pdf->Cell(0, 10, 'Ma Don Hang: #' . $booking['id'], 0, 1);
-$pdf->Cell(0, 10, 'Ngay Tao: ' . date('d/m/Y H:i', strtotime($booking['created_at'])), 0, 1);
-$pdf->Cell(0, 10, 'Trang Thai Thanh Toan: ' . ($booking['payment_status'] == 'paid' ? 'DA THANH TOAN' : 'CHUA THANH TOAN'), 0, 1);
-$pdf->Ln(5);
+// Dòng 1: Dịch vụ chính
+$pdf->Cell(10, 10, '1', 1, 0, 'C');
+$pdf->Cell(90, 10, convertToUnsigned($booking['service_name']), 1, 0, 'L');
+$pdf->Cell(30, 10, '1', 1, 0, 'C');
+$pdf->Cell(30, 10, number_format($booking['final_price']), 1, 0, 'R');
+$pdf->Cell(30, 10, number_format($booking['final_price']), 1, 1, 'R');
 
-// --- THÔNG TIN KHÁCH HÀNG ---
-$pdf->SetFont('Arial','B',14);
-$pdf->SetFillColor(240, 240, 240);
-$pdf->Cell(0, 10, ' THONG TIN KHACH HANG', 0, 1, 'L', true);
-$pdf->SetFont('Arial','',12);
+// (Nếu có vật tư thì loop ở đây...)
+
+// --- TỔNG CỘNG ---
 $pdf->Ln(2);
+$pdf->SetFont('Arial','B',13);
+$pdf->Cell(130, 10, '', 0, 0);
+$pdf->Cell(30, 10, 'TONG:', 0, 0, 'R');
+$pdf->SetTextColor(220, 53, 69); // Màu đỏ
+$pdf->Cell(30, 10, number_format($booking['final_price']) . ' d', 0, 1, 'R');
 
-// Sử dụng key 'full_name' (đã được alias từ 'name' trong SQL)
-$pdf->Cell(40, 10, 'Ho Ten:', 0, 0);
-$pdf->Cell(0, 10, convertToUnsigned($booking['full_name']), 0, 1);
-
-// Sử dụng key 'phone_number' (đã được alias từ 'phone' trong SQL)
-$pdf->Cell(40, 10, 'So Dien Thoai:', 0, 0);
-$pdf->Cell(0, 10, $booking['phone_number'], 0, 1);
-
-$pdf->Cell(40, 10, 'Dia Chi:', 0, 0);
-$pdf->MultiCell(0, 10, convertToUnsigned($booking['address'])); 
-$pdf->Ln(5);
-
-// --- CHI TIẾT DỊCH VỤ ---
-$pdf->SetFont('Arial','B',12);
-$pdf->SetFillColor(0, 123, 255);
-$pdf->SetTextColor(255); 
-
-$pdf->Cell(100, 10, 'Dich Vu', 1, 0, 'C', true);
-$pdf->Cell(40, 10, 'Ngay Hen', 1, 0, 'C', true);
-$pdf->Cell(50, 10, 'Thanh Tien (VND)', 1, 1, 'C', true);
-
-$pdf->SetFont('Arial','',12);
-$pdf->SetTextColor(0); 
-
-$pdf->Cell(100, 10, convertToUnsigned($booking['service_name']), 1, 0);
-$pdf->Cell(40, 10, date('d/m/Y', strtotime($booking['appointment_time'])), 1, 0, 'C');
-$pdf->Cell(50, 10, number_format($booking['final_price']), 1, 1, 'R');
-
-// --- TỔNG TIỀN ---
-$pdf->Ln(5);
-$pdf->SetFont('Arial','B',14);
-$pdf->Cell(140, 10, 'TONG CONG:', 0, 0, 'R');
-$pdf->SetTextColor(220, 53, 69); 
-$pdf->Cell(50, 10, number_format($booking['final_price']) . ' VND', 0, 1, 'R');
-
-// --- LỜI CẢM ƠN ---
+// --- FOOTER LỜI CẢM ƠN ---
 $pdf->Ln(20);
-$pdf->SetFont('Arial','I',11);
 $pdf->SetTextColor(100);
-$pdf->MultiCell(0, 8, "Cam on quy khach da su dung dich vu cua TECHFIX.\nDay la hoa don dien tu, co gia tri luu hanh noi bo.\nHotline ho tro: 1900 1234", 0, 'C');
+$pdf->SetFont('Arial','I',10);
+$pdf->Cell(0, 6, 'Cam on quy khach da su dung dich vu cua TECHFIX!', 0, 1, 'C');
+$pdf->Cell(0, 6, 'Moi thac mac vui long lien he: contact@techfix.vn', 0, 1, 'C');
 
-$pdf->Output('I', 'Hoa_don_TECHFIX_' . $booking['id'] . '.pdf');
+$pdf->Output('I', 'Hoa_don_' . $booking['id'] . '.pdf');
 ?>

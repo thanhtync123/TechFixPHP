@@ -1,25 +1,33 @@
 <?php
+// api_get_districts.php
 header('Content-Type: application/json');
-require_once '../config/db.php'; // Đảm bảo $conn được khởi tạo
+require_once '../config/db.php'; 
 
-$province_id = $_GET['province_id'] ?? 0;
+// Nhận mã code gửi lên (đổi tên biến cho dễ hiểu)
+$province_code = $_GET['province_id'] ?? ''; 
+
 $districts = [];
 
-if ($province_id > 0) {
+if (!empty($province_code)) { // Kiểm tra không rỗng
     try {
-        // Sử dụng prepared statement để chống SQL Injection
-        $stmt = $conn->prepare("SELECT name FROM districts WHERE province_id = ? ORDER BY name ASC");
-        $stmt->bind_param("i", $province_id);
+        // SỬA 1: WHERE province_code (đúng tên cột trong ảnh)
+        // SỬA 2: Lấy cột 'name' (đúng tên cột trong ảnh)
+        $sql = "SELECT name FROM districts WHERE province_code = ? ORDER BY name ASC";
+        
+        $stmt = $conn->prepare($sql);
+        
+        // SỬA 3: Đổi "i" (integer) thành "s" (string) vì mã tỉnh là varchar
+        $stmt->bind_param("s", $province_code);
+        
         $stmt->execute();
         $result = $stmt->get_result();
         
         while ($row = $result->fetch_assoc()) {
-            $districts[] = $row; // Trả về mảng các object, ví dụ: [{"name": "Quận 1"}, {"name": "Quận 7"}]
+            $districts[] = $row; 
         }
         $stmt->close();
         
     } catch (Exception $e) {
-        // Xử lý lỗi
         echo json_encode(['error' => $e->getMessage()]);
         exit;
     }
